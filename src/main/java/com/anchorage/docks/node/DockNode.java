@@ -303,7 +303,8 @@ public class DockNode extends StackPane implements DockContainableComponent {
 
         station.add(this);
         stageFloatable = new StageFloatable(this, owner, x, y);
-        stageFloatable.show();
+        stageFloatable.makeNodeActiveOnFloatableStage();
+		stageFloatable.show();
         stageFloatable.setWidth(width);
         stageFloatable.setHeight(height);
         floatingProperty.set(true);

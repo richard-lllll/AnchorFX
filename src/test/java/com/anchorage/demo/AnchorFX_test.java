@@ -57,14 +57,14 @@ public class AnchorFX_test extends Application {
         node2.resizableProperty().set(false);
         
       
-//        DockNode node1 = AnchorageSystem.createDock("Tree", generateRandomTree());
-//        node1.dock(station, DockNode.DockPosition.CENTER);
-//  
-//        DockNode node2 = AnchorageSystem.createDock("Editor", new HTMLEditor());
-//        node2.dock(station, DockNode.DockPosition.RIGHT);
-//        
-//        DockNode node3 = AnchorageSystem.createDock("Below the editor", generateRandomTree());
-//        node3.dock(node2, DockNode.DockPosition.BOTTOM,0.8);
+        DockNode node3 = AnchorageSystem.createDock("Tree", generateRandomTree());
+        node3.dock(station, DockNode.DockPosition.CENTER);
+  
+        DockNode node4 = AnchorageSystem.createDock("Editor", new HTMLEditor());
+        node4.dock(station, DockNode.DockPosition.RIGHT);
+        
+        DockNode node5 = AnchorageSystem.createDock("Below the editor", generateRandomTree());
+        node5.dock(node4, DockNode.DockPosition.BOTTOM,0.8);
 
         AnchorageSystem.installDefaultStyle();
 
@@ -72,8 +72,8 @@ public class AnchorFX_test extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-//        DockNode node4 = AnchorageSystem.createDock("Floating", new TableView());
-//        node4.dockAsFloating(primaryStage, station, 0, 0, 400, 200);
+        DockNode node6 = AnchorageSystem.createDock("Floating", generateRandomTree());
+        node6.dockAsFloating(primaryStage, station, 0, 0, 400, 200);
 
         
         AnchorageSystem.installDefaultStyle();
