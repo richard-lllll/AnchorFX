@@ -183,7 +183,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
         if (draggingProperty.get()) {
             closeFloatingStage();
         }
-        disableDragging();
+		disableDragging();
     }
 
     public boolean isDockVisible() {
@@ -195,12 +195,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
     }
 
     public void closeFloatingStage() {
-
         if (stageFloatable != null) {
             stageFloatable.closeStage();
             stageFloatable = null;
         }
-
         floatingProperty.set(false);
     }
 
@@ -392,6 +390,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
             getParentContainer().undock(this);
             station.get().remove(this);
         } else if (isFloating) {
+			closeFloatingStage();
             station.get().remove(this);
             station.set(null);
         }
