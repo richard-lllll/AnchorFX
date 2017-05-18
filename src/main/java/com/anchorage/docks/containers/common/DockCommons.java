@@ -67,51 +67,14 @@ public class DockCommons {
     }
 
     public static DockTabberContainer createTabber(Node existNode, Node newNode, DockNode.DockPosition position) {
-
         if (existNode instanceof DockNode && newNode instanceof DockNode) {
             DockNode existDockNode = (DockNode) existNode;
             DockNode newDockNode = (DockNode) newNode;
-
             DockTabberContainer tabber = new DockTabberContainer();
-            Tab existTabPanel = new Tab(existDockNode.getContent().titleProperty().get());
-            Tab newTabPanel = new Tab(newDockNode.getContent().titleProperty().get());
-
-            existTabPanel.setOnCloseRequest(event -> {
-
-                if (existDockNode.getCloseRequestHandler() == null || existDockNode.getCloseRequestHandler().canClose()) {
-                    existDockNode.undock();
-                    event.consume();
-                }
-
-            });
-
-            newTabPanel.setOnCloseRequest(event -> {
-
-                if (newDockNode.getCloseRequestHandler() == null || newDockNode.getCloseRequestHandler().canClose()) {
-                    newDockNode.undock();
-                    event.consume();
-                }
-
-            });
-
-            existTabPanel.closableProperty().bind(existDockNode.closeableProperty());
-            newTabPanel.closableProperty().bind(newDockNode.closeableProperty());
-
-            existTabPanel.setContent(existDockNode);
-            newTabPanel.setContent(newDockNode);
-
-            DockContainableComponent existContainableComponent = (DockContainableComponent) existNode;
-            DockContainableComponent newContainableComponent = (DockContainableComponent) newNode;
-
-            existContainableComponent.setParentContainer(tabber);
-            newContainableComponent.setParentContainer(tabber);
-
-            tabber.getTabs().addAll(existTabPanel, newTabPanel);
-
+			tabber.addAsTab(existDockNode);
+			tabber.addAsTab(newDockNode);
             tabber.getStyleClass().add("docknode-tab-pane");
-
             newDockNode.ensureVisibility();
-
             return tabber;
         }
         return null;

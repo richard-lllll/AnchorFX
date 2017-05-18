@@ -80,7 +80,7 @@ public final class DockUIPanel extends Pane {
 
         buildNode(title,imageIcon);
 
-        installDragEventMananger();
+        installDragEventMananger(barPanel);
 
     }
     
@@ -109,20 +109,20 @@ public final class DockUIPanel extends Pane {
         return titleLabel.textProperty();
     }
 
-    private void installDragEventMananger() {
+    public void installDragEventMananger(Node n) {
         
-        barPanel.setOnMouseClicked(event -> {
+        n.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                  node.maximizeOrRestore();
             }
         });
 
-        barPanel.setOnMouseDragged(event -> {
+        n.setOnMouseDragged(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 manageDragEvent(event);
             }
         });
-        barPanel.setOnMouseReleased(event -> {
+        n.setOnMouseReleased(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 manageReleaseEvent();
             }
