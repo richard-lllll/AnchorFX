@@ -75,7 +75,9 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 	}
 
 	private Tab getTabByNode(DockNode node) {
-		return getTabs().stream().filter(t -> t.getContent() == node).findFirst().get();
+		return getTabs().stream()
+				.filter(t -> t.getContent() == node)
+				.findFirst().orElse(null);
 	}
 
 	@Override
@@ -89,9 +91,7 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		if (position != DockNode.DockPosition.CENTER) {
 			createSplitter(node, position);
 		} else {
-
-			DockContainableComponent containableComponent = (DockContainableComponent) node;
-			if (containableComponent.getParentContainer() != this) {
+			if (node.getParentContainer() != this) {
 				putDock(node, position, percentage);
 			}
 		}
@@ -119,7 +119,7 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		Tab tab = getTabs().get(index);
 		getTabs().remove(tab);
 
-		((DockContainableComponent) node).setParentContainer(null);
+		node.setParentContainer(null);
 
 		if (getTabs().size() == 1) {
 			DockNode remainingNode = (DockNode) getTabs().get(0).getContent();
