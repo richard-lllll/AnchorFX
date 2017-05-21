@@ -69,7 +69,7 @@ public final class DockUIPanel extends Pane {
 
     public DockUIPanel(String title, Node nodeContent, boolean subStationStype, Image imageIcon) {
 
-        getStylesheets().add("anchorfx.css");
+        getStylesheets().add("AnchorFX.css");
         
         this.subStationStype = subStationStype;
 
