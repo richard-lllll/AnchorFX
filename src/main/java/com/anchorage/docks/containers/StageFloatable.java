@@ -53,10 +53,11 @@ public class StageFloatable extends Stage {
   private ImageView imageView;
 
   public StageFloatable(DockNode node, Window owner, double startX, double startY) {
+    super();
     this.node = node;
     this.owner = owner;
     buildUI(startX, startY);
-    setAlwaysOnTop(true);
+//    setAlwaysOnTop(true);
   }
 
   private void setupMouseEvents() {
@@ -67,7 +68,6 @@ public class StageFloatable extends Stage {
         startHeight = getHeight();
         startY = getY();
       }
-
       if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
         boolean sizeRight = valueInRange(event.getX(),
             stackPanelContainer.getWidth() - stackPanelContainer.getPadding().getLeft(),
@@ -78,7 +78,6 @@ public class StageFloatable extends Stage {
         boolean sizeBottom = valueInRange(event.getY(),
             stackPanelContainer.getHeight() - stackPanelContainer.getPadding().getBottom(),
             stackPanelContainer.getHeight());
-
         Cursor cursor = changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
         getScene().setCursor(cursor);
       }
