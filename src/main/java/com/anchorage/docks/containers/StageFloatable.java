@@ -57,7 +57,6 @@ public class StageFloatable extends Stage {
     this.node = node;
     this.owner = owner;
     buildUI(startX, startY);
-//    setAlwaysOnTop(true);
   }
 
   private void setupMouseEvents() {
@@ -70,13 +69,13 @@ public class StageFloatable extends Stage {
       }
       if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
         boolean sizeRight = valueInRange(event.getX(),
-            stackPanelContainer.getWidth() - stackPanelContainer.getPadding().getLeft(),
+            stackPanelContainer.getWidth() - Math.max(stackPanelContainer.getPadding().getLeft(), 2),
             stackPanelContainer.getWidth());
         boolean sizeLeft = valueInRange(event.getX(), 0,
-            stackPanelContainer.getPadding().getRight());
-        boolean sizeTop = valueInRange(event.getY(), 0, stackPanelContainer.getPadding().getTop());
+            Math.max(stackPanelContainer.getPadding().getRight(), 2));
+        boolean sizeTop = valueInRange(event.getY(), 0, Math.max(stackPanelContainer.getPadding().getTop(), 2));
         boolean sizeBottom = valueInRange(event.getY(),
-            stackPanelContainer.getHeight() - stackPanelContainer.getPadding().getBottom(),
+            stackPanelContainer.getHeight() - Math.max(stackPanelContainer.getPadding().getBottom(), 2),
             stackPanelContainer.getHeight());
         Cursor cursor = changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
         getScene().setCursor(cursor);
@@ -185,9 +184,10 @@ public class StageFloatable extends Stage {
   }
 
   private void createContainerPanel() {
-    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
-    imageView = new ImageView(ghostImage);
-    stackPanelContainer = new StackPane(imageView);
+//    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
+//    imageView = new ImageView(ghostImage);
+    stackPanelContainer = new StackPane();
+//    stackPanelContainer = new StackPane(imageView);
     transparentRootPanel = new StackPane(stackPanelContainer);
     transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
     transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
