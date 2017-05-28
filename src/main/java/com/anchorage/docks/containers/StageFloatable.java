@@ -184,10 +184,9 @@ public class StageFloatable extends Stage {
   }
 
   private void createContainerPanel() {
-//    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
-//    imageView = new ImageView(ghostImage);
-    stackPanelContainer = new StackPane();
-//    stackPanelContainer = new StackPane(imageView);
+    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
+    imageView = new ImageView(ghostImage);
+    stackPanelContainer = new StackPane(imageView);
     transparentRootPanel = new StackPane(stackPanelContainer);
     transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
     transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
