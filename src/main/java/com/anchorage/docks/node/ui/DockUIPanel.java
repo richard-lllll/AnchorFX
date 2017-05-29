@@ -105,27 +105,29 @@ public final class DockUIPanel extends Pane {
   }
 
   private void manageDragEvent(MouseEvent event) {
-    if(node.maximizingProperty().get()) {
+    if (node.maximizingProperty().get()) {
       return;
     }
     if (!node.draggingProperty().get()) {
 
-        Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
-        deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
-            event.getScreenY() - bounds.getMinY());
-        showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
-            event.getScreenY() - deltaDragging.getY());
-
+      Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
+      deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
+          event.getScreenY() - bounds.getMinY());
+      showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
+          event.getScreenY() - deltaDragging.getY());
+      if (!node.maximizingProperty().get()) {
+        AnchorageSystem.prepareDraggingZoneFor(node.stationProperty().get(), node);
+      }
     } else {
       if (node
           .draggingProperty().get()) {
 
 //          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
 //              event.getScreenY() - deltaDragging.getY());
-          nodePreview.setX(event.getScreenX() - deltaDragging.getX());
-          nodePreview.setY(event.getScreenY() - deltaDragging.getY());
-          //node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
-//          AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
+        nodePreview.setX(event.getScreenX() - deltaDragging.getX());
+        nodePreview.setY(event.getScreenY() - deltaDragging.getY());
+        node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
+        AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
 
       }
     }
@@ -133,13 +135,19 @@ public final class DockUIPanel extends Pane {
 
   private void showDraggedNodePreview(double x, double y) {
     node.enableDragging();
-    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),x, y);
-nodePreview.show();
+    if (nodePreview != null) {
+      nodePreview.closeStage();
+    }
+    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),
+        x, y);
+    nodePreview.show();
   }
 
   private void manageReleaseEvent() {
     if (node.draggingProperty().get() && !node.maximizingProperty().get()) {
       AnchorageSystem.finalizeDragging();
+      nodePreview.closeStage();
+      nodePreview = null;
     }
   }
 
