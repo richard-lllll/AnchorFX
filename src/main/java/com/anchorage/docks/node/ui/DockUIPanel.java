@@ -18,6 +18,7 @@
  */
 package com.anchorage.docks.node.ui;
 
+import com.anchorage.docks.containers.NodeDraggingPreview;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.system.AnchorageSystem;
 import java.util.Objects;
@@ -50,6 +51,7 @@ public final class DockUIPanel extends Pane {
   private Point2D deltaDragging;
   private boolean substationType;
   private ImageView iconView;
+  private NodeDraggingPreview nodePreview;
 
   public DockUIPanel(String title, Node _nodeContent, boolean _substationType, Image imageIcon) {
     getStylesheets().add("AnchorFX.css");
@@ -103,25 +105,36 @@ public final class DockUIPanel extends Pane {
   }
 
   private void manageDragEvent(MouseEvent event) {
+    if(node.maximizingProperty().get()) {
+      return;
+    }
     if (!node.draggingProperty().get()) {
-      if (!node.maximizingProperty().get()) {
+
         Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
         deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
             event.getScreenY() - bounds.getMinY());
-        node.enableDraggingOnPosition(event.getScreenX() - deltaDragging.getX(),
+        showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
             event.getScreenY() - deltaDragging.getY());
-      }
+
     } else {
-      if (node.getFloatableStage() != null && !node.getFloatableStage().inResizing() && node
+      if (node
           .draggingProperty().get()) {
-        if (!node.maximizingProperty().get()) {
-          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
-              event.getScreenY() - deltaDragging.getY());
+
+//          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
+//              event.getScreenY() - deltaDragging.getY());
+          nodePreview.setX(event.getScreenX() - deltaDragging.getX());
+          nodePreview.setY(event.getScreenY() - deltaDragging.getY());
           //node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
-          AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
-        }
+//          AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
+
       }
     }
+  }
+
+  private void showDraggedNodePreview(double x, double y) {
+    node.enableDragging();
+    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),x, y);
+nodePreview.show();
   }
 
   private void manageReleaseEvent() {

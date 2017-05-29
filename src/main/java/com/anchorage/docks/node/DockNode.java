@@ -203,6 +203,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
     }
   }
 
+  public void enableDragging() {
+    draggingProperty.set(true);
+  }
+
   public void disableDragging() {
     draggingProperty.set(false);
     makeOpaque();
