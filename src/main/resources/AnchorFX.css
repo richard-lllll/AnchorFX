@@ -87,6 +87,16 @@
     -fx-background-color:transparent;
 } 
 
+.docknode-command-button-close .icon {
+  -fx-background-color: white;
+  -size: 10;
+  -fx-min-height: -size;
+  -fx-min-width: -size;
+  -fx-max-height: -size;
+  -fx-max-width: -size;
+  -fx-shape: "M 77.496023,1047.2139 44.181735,1013.9 77.496023,980.5854 72.39911,975.48855 39.084822,1008.8029 5.770537,975.48855 l -5.09671299,5.09685 33.31428499,33.314 -33.31428499,33.3145 5.09690999,5.0965 33.314288,-33.3138 33.314288,33.3138 5.096713,-5.0965 z";
+}
+
 .station {
     -fx-background-color: rgb(0,0,0);
     -fx-padding: 0
