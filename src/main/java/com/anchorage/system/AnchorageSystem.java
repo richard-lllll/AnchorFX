@@ -42,7 +42,6 @@ import javafx.scene.image.Image;
 public class AnchorageSystem {
 
     private static final List<DockStation> stations;
-    private static DockNode nodeInDragging;
     private static final Image emptyIconImage;
     private static final Image emptySubstationIconImage;
 
@@ -72,12 +71,10 @@ public class AnchorageSystem {
     }
 
     public static DockNode createDock(String title, Node content) {
-        DockUIPanel panel = new DockUIPanel(title, content, false, emptyIconImage);
-        DockNode container = new DockNode(panel);
-        return container;
+        return createDock(title, content, emptyIconImage);
     }
 
-    public static DockNode createDock(String title, Parent content, Image icon) {
+    public static DockNode createDock(String title, Node content, Image icon) {
         DockUIPanel panel = new DockUIPanel(title, content, false, icon);
         DockNode container = new DockNode(panel);
         return container;

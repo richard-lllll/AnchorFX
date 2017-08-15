@@ -60,7 +60,11 @@ public final class DockUIPanel extends Pane {
     Objects.requireNonNull(title);
     nodeContent = _nodeContent;
     buildNode(title, imageIcon);
-    installDragEventManager(barPanel);
+//    installDragEventManager(barPanel);
+  }
+
+  public Node getNodeForDraggingManagement() {
+    return barPanel;
   }
 
   public void setIcon(Image icon) {
@@ -86,70 +90,68 @@ public final class DockUIPanel extends Pane {
     return titleLabel.textProperty();
   }
 
-  public void installDragEventManager(Node n) {
-    n.setOnMouseClicked(event -> {
-      if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-        node.maximizeOrRestore();
-      }
-    });
-    n.setOnMouseDragged(event -> {
-      if (event.getButton() == MouseButton.PRIMARY) {
-        manageDragEvent(event);
-      }
-    });
-    n.setOnMouseReleased(event -> {
-      if (event.getButton() == MouseButton.PRIMARY) {
-        manageReleaseEvent();
-      }
-    });
-  }
+//  public void installDragEventManager(Node n) {
+//    n.setOnMouseClicked(event -> {
+//      if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+//        node.maximizeOrRestore();
+//      }
+//    });
+//    n.setOnMouseDragged(event -> {
+//      if (event.getButton() == MouseButton.PRIMARY) {
+//        manageDragEvent(event);
+//      }
+//    });
+//    n.setOnMouseReleased(event -> {
+//      if (event.getButton() == MouseButton.PRIMARY) {
+//        manageReleaseEvent();
+//      }
+//    });
+//  }
 
-  private void manageDragEvent(MouseEvent event) {
-    if (node.maximizingProperty().get()) {
-      return;
-    }
-    if (!node.draggingProperty().get()) {
+//  private void manageDragEvent(MouseEvent event) {
+//    if (node.maximizingProperty().get()) {
+//      return;
+//    }
+//    if (!node.draggingProperty().get()) {
+//
+//      Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
+//      deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
+//          event.getScreenY() - bounds.getMinY());
+//      showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
+//          event.getScreenY() - deltaDragging.getY());
+//      if (!node.maximizingProperty().get()) {
+//        AnchorageSystem.prepareDraggingZoneFor(node.stationProperty().get(), node);
+//      }
+//    } else {
+//      if (node.draggingProperty().get()) {
+////          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
+////              event.getScreenY() - deltaDragging.getY());
+//        nodePreview.setX(event.getScreenX() - deltaDragging.getX());
+//        nodePreview.setY(event.getScreenY() - deltaDragging.getY());
+//        node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
+//        AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
+//
+//      }
+//    }
+//  }
 
-      Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
-      deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
-          event.getScreenY() - bounds.getMinY());
-      showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
-          event.getScreenY() - deltaDragging.getY());
-      if (!node.maximizingProperty().get()) {
-        AnchorageSystem.prepareDraggingZoneFor(node.stationProperty().get(), node);
-      }
-    } else {
-      if (node
-          .draggingProperty().get()) {
+//  private void showDraggedNodePreview(double x, double y) {
+//    node.enableDragging();
+//    if (nodePreview != null) {
+//      nodePreview.closeStage();
+//    }
+//    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),
+//        x, y);
+//    nodePreview.show();
+//  }
 
-//          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
-//              event.getScreenY() - deltaDragging.getY());
-        nodePreview.setX(event.getScreenX() - deltaDragging.getX());
-        nodePreview.setY(event.getScreenY() - deltaDragging.getY());
-        node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
-        AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
-
-      }
-    }
-  }
-
-  private void showDraggedNodePreview(double x, double y) {
-    node.enableDragging();
-    if (nodePreview != null) {
-      nodePreview.closeStage();
-    }
-    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),
-        x, y);
-    nodePreview.show();
-  }
-
-  private void manageReleaseEvent() {
-    if (node.draggingProperty().get() && !node.maximizingProperty().get()) {
-      AnchorageSystem.finalizeDragging();
-      nodePreview.closeStage();
-      nodePreview = null;
-    }
-  }
+//  private void manageReleaseEvent() {
+//    if (node.draggingProperty().get() && !node.maximizingProperty().get()) {
+//      AnchorageSystem.finalizeDragging();
+//      nodePreview.closeStage();
+//      nodePreview = null;
+//    }
+//  }
 
   private void buildNode(String title, Image iconImage) {
     Objects.requireNonNull(iconImage);

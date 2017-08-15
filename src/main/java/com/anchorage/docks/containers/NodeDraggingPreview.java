@@ -40,11 +40,6 @@ public class NodeDraggingPreview extends Stage {
   private StackPane transparentRootPanel;
   private StackPane stackPanelContainer;
   private Window owner;
-  private double startX;
-  private double startWidth;
-  private double startY;
-  private double startHeight;
-  private ImageView imageView;
 
   public NodeDraggingPreview(DockNode node, Window owner, double startX, double startY) {
     super();
@@ -75,8 +70,8 @@ public class NodeDraggingPreview extends Stage {
   }
 
   private void createContainerPanel() {
-    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
-    imageView = new ImageView(ghostImage);
+    WritableImage ghostImage = node.snapshot(null, null);
+    ImageView imageView = new ImageView(ghostImage);
     stackPanelContainer = new StackPane(imageView);
     transparentRootPanel = new StackPane(stackPanelContainer);
     transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));

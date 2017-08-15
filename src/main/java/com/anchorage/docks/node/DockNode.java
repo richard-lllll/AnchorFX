@@ -25,6 +25,7 @@ package com.anchorage.docks.node;
 
 import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_NODE_DROPSHADOW_RADIUS;
 
+import com.anchorage.docks.containers.NodeDraggingPreview;
 import com.anchorage.docks.containers.StageFloatable;
 import com.anchorage.docks.containers.interfaces.DockContainableComponent;
 import com.anchorage.docks.containers.interfaces.DockContainer;
@@ -48,7 +49,9 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Window;
@@ -71,6 +74,8 @@ public class DockNode extends StackPane implements DockContainableComponent {
   private double floatingStateWidth;
   private double floatingStateHeight;
   private DockNodeCloseRequestHandler closeRequestHanlder;
+  private Point2D dragWindowOffset;
+  private NodeDraggingPreview nodePreview;
 
   private DockNode() {
     station = new SimpleObjectProperty<>(null);
@@ -82,6 +87,16 @@ public class DockNode extends StackPane implements DockContainableComponent {
     draggingProperty = new ReadOnlyBooleanWrapper(false);
     maximizingProperty = new ReadOnlyBooleanWrapper(false);
     container = new ReadOnlyObjectWrapper<>(null);
+//    floatingProperty.addListener((observable, oldValue, newValue) -> {
+//      if(newValue) {
+//        installNullDragManager(
+//            content.getNodeForDraggingManagement());
+//      } else {
+//        installDragEventManager(
+//            content.getNodeForDraggingManagement());
+//      }
+//    }
+//    );
   }
 
   public DockNode(DockUIPanel node) {
@@ -93,6 +108,69 @@ public class DockNode extends StackPane implements DockContainableComponent {
     buildUI(node);
 
     callCreationCallBack();
+    installDragEventManager(content.getNodeForDraggingManagement());
+  }
+
+  private void showDraggedNodePreview(double x, double y) {
+    if (nodePreview != null) {
+      nodePreview.closeStage();
+    }
+    nodePreview = new NodeDraggingPreview(this, stationProperty().get().getScene().getWindow(),
+        x, y);
+    nodePreview.show();
+  }
+
+  public void installNullDragManager(Node n) {
+    n.setOnMouseDragged(null);
+  }
+
+  public void installDragEventManager(Node n) {
+    n.setOnMouseClicked(event -> {
+      if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+        maximizeOrRestore();
+      }
+    });
+    n.setOnMouseDragged(event -> {
+      if (event.getButton() == MouseButton.PRIMARY) {
+        if (maximizingProperty().get()) {
+          return;
+        }
+        if (!draggingProperty().get()) {
+          enableDragging();
+          dragWindowOffset = content.screenToLocal(event.getScreenX(), event.getScreenY());
+          if (floatingProperty().get()) {
+            moveFloatable(event.getScreenX(), event.getScreenY());
+          } else {
+            showDraggedNodePreview(event.getScreenX() - dragWindowOffset.getX(),
+                event.getScreenY() - dragWindowOffset.getY());
+          }
+          if (!maximizingProperty().get()) {
+            AnchorageSystem.prepareDraggingZoneFor(stationProperty().get(), this);
+          }
+        } else {
+          if (floatingProperty().get()) {
+            moveFloatable(event.getScreenX() - dragWindowOffset.getX(),
+                event.getScreenY() - dragWindowOffset.getY());
+          } else {
+            nodePreview.setX(event.getScreenX() - dragWindowOffset.getX());
+            nodePreview.setY(event.getScreenY() - dragWindowOffset.getY());
+          }
+          stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
+          AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
+        }
+      }
+    });
+    n.setOnMouseReleased(event -> {
+      if (event.getButton() == MouseButton.PRIMARY) {
+        if (draggingProperty().get() && !maximizingProperty().get()) {
+          if (nodePreview != null) {
+            nodePreview.closeStage();
+            nodePreview = null;
+          }
+          AnchorageSystem.finalizeDragging();
+        }
+      }
+    });
   }
 
   private void callCreationCallBack() {
@@ -280,16 +358,6 @@ public class DockNode extends StackPane implements DockContainableComponent {
     this.station.set((DockStation) station);
   }
 
-  public void dock(DockNode nodeTarget, DockPosition position) {
-    if (stationProperty().get() != null) {
-      ensureVisibility();
-      return;
-    }
-    nodeTarget.stationProperty().get().add(this);
-    nodeTarget.getParentContainer().putDock(this, nodeTarget, position, 0.5);
-    station.set(nodeTarget.station.get());
-  }
-
   public void dock(DockStation station, DockPosition position, double percentage) {
     if (stationProperty().get() != null) {
       ensureVisibility();
@@ -298,6 +366,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
     station.add(this);
     station.putDock(this, position, percentage);
     this.station.set((DockStation) station);
+  }
+
+  public void dock(DockNode nodeTarget, DockPosition position) {
+    dock(nodeTarget, position, 0.5);
   }
 
   public void dock(DockNode nodeTarget, DockPosition position, double percentage) {
