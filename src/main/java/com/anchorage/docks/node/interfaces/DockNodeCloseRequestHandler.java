@@ -24,12 +24,18 @@
 package com.anchorage.docks.node.interfaces;
 
 /**
- *
+ * Intercept closing of dock nodes
+ * 
  * @author Alessio
  */
-
 @FunctionalInterface
 public interface DockNodeCloseRequestHandler {
 
+	/**
+	 * Called on close request
+	 * 
+	 * @return true: if the dock can be closed, false: abort closing
+	 */
 	public boolean canClose();
+
 }

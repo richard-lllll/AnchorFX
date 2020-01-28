@@ -24,7 +24,11 @@ import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_N
 
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.stations.DockStation;
+import com.anchorage.system.AnchorageSystem;
+import com.anchorage.system.interfaces.IDockGlobalListener;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -41,7 +45,13 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
+/**
+ * Floatable: Area to move around dock nodes
+ */
 public class StageFloatable extends Stage {
+
+	/** Number of pixels at the borders where resize is triggered */
+	private static final int RESIZE_BORDER_WIDTH = 4;
 
 	private DockNode node;
 	private StackPane transparentRootPanel;
@@ -53,11 +63,18 @@ public class StageFloatable extends Stage {
 	private double startHeight;
 	private ImageView imageView;
 
+	private ChangeListener<Boolean> focusedListener = null;
+
+	/** State if resizing of the stage is performed */
+	private ResizeState resizeState = new ResizeState();
+
 	public StageFloatable(DockNode node, Window owner, double startX, double startY) {
 		super();
 		this.node = node;
 		this.owner = owner;
 		buildUI(startX, startY);
+
+		initListeners();
 	}
 
 	private void setupMouseEvents() {
@@ -68,33 +85,78 @@ public class StageFloatable extends Stage {
 				startHeight = getHeight();
 				startY = getY();
 			}
-			if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
-				boolean sizeRight = valueInRange(event.getX(), stackPanelContainer.getWidth() - Math.max(stackPanelContainer.getPadding().getLeft(), 2),
-						stackPanelContainer.getWidth());
-				boolean sizeLeft = valueInRange(event.getX(), 0, Math.max(stackPanelContainer.getPadding().getRight(), 2));
-				boolean sizeTop = valueInRange(event.getY(), 0, Math.max(stackPanelContainer.getPadding().getTop(), 2));
-				boolean sizeBottom = valueInRange(event.getY(), stackPanelContainer.getHeight() - Math.max(stackPanelContainer.getPadding().getBottom(), 2),
-						stackPanelContainer.getHeight());
-				Cursor cursor = changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
-				getScene().setCursor(cursor);
+
+			if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
+				if (resizeState.NE()) {
+					// Do not close with cursor of resizing
+
+					event.consume();
+				}
 			}
-			if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && (getScene().getCursor() != null && getScene().getCursor() != Cursor.DEFAULT)) {
-				if (getScene().getCursor() == Cursor.E_RESIZE || getScene().getCursor() == Cursor.SE_RESIZE || getScene().getCursor() == Cursor.NE_RESIZE) {
-					if (event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_WIDTH) {
-						setWidth(event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS);
-					}
-				} else if (getScene().getCursor() == Cursor.S_RESIZE || getScene().getCursor() == Cursor.SE_RESIZE || getScene().getCursor() == Cursor.SW_RESIZE) {
-					if (event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_HEIGHT) {
-						setHeight(event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS);
-					}
-				} else if (getScene().getCursor() == Cursor.W_RESIZE || getScene().getCursor() == Cursor.NW_RESIZE || getScene().getCursor() == Cursor.SW_RESIZE) {
+
+			if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
+				// Mouse moved: Change cursor to indicate if resizing is possible
+
+				boolean sizeRight = valueInRange(event.getX(), stackPanelContainer.getWidth() - Math.max(stackPanelContainer.getPadding().getLeft(), RESIZE_BORDER_WIDTH),
+						stackPanelContainer.getWidth());
+				boolean sizeLeft = valueInRange(event.getX(), 0, Math.max(stackPanelContainer.getPadding().getRight(), RESIZE_BORDER_WIDTH));
+				boolean sizeTop = valueInRange(event.getY(), 0, Math.max(stackPanelContainer.getPadding().getTop(), RESIZE_BORDER_WIDTH));
+				boolean sizeBottom = valueInRange(event.getY(), stackPanelContainer.getHeight() - Math.max(stackPanelContainer.getPadding().getBottom(), RESIZE_BORDER_WIDTH),
+						stackPanelContainer.getHeight());
+
+				changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
+				getScene().setCursor(resizeState.cursor);
+			}
+
+			if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && resizeState.isResizing()) {
+				// Dragging: Apply resizing
+
+				double width = calcuateWidth(event);
+				double height = calcuateHeight(event);
+
+				boolean updateWidth = false;
+				boolean updateHeight = false;
+
+				if (resizeState.SE()) {
+					updateWidth = true;
+					updateHeight = true;
+				}
+
+				if (resizeState.NE()) {
+					updateWidth = true;
+				}
+				if (resizeState.E()) {
+					updateWidth = true;
+				}
+
+				if (resizeState.S() || resizeState.SW()) {
+					updateHeight = true;
+				}
+
+				if (updateWidth && changeWidth(event)) {
+					setWidth(width);
+				}
+				if (updateHeight && changeHeight(event)) {
+					setHeight(height);
+				}
+
+				boolean changesX = resizeState.W() || resizeState.NW() || resizeState.SW();
+				boolean changesY = resizeState.N() || resizeState.NE() || resizeState.NW();
+
+				if (changesX) {
 					double newX = event.getScreenX() - FLOATING_NODE_DROPSHADOW_RADIUS;
 					double newWidth = startX - newX + startWidth;
 					if (newWidth > FLOATING_NODE_MINIMUM_WIDTH) {
 						setX(newX);
 						setWidth(newWidth);
 					}
-				} else if (getScene().getCursor() == Cursor.N_RESIZE || getScene().getCursor() == Cursor.NW_RESIZE || getScene().getCursor() == Cursor.NE_RESIZE) {
+
+					if (resizeState.NW() && changeHeight(event)) {
+						setHeight(height);
+					}
+				}
+
+				if (changesY) {
 					double newY = event.getScreenY() - FLOATING_NODE_DROPSHADOW_RADIUS;
 					double newHeight = startY - newY + startHeight;
 					if (newHeight > FLOATING_NODE_MINIMUM_HEIGHT) {
@@ -103,46 +165,78 @@ public class StageFloatable extends Stage {
 					}
 				}
 			}
-			/*
-			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
-			    // TODO: handle this event?
-			}
-			*/
 		};
+
 		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_PRESSED, eventsHandler);
 		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_MOVED, eventsHandler);
 		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_DRAGGED, eventsHandler);
 		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_RELEASED, eventsHandler);
 	}
 
+	private boolean changeHeight(MouseEvent event) {
+		return event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_HEIGHT;
+	}
+
+	private boolean changeWidth(MouseEvent event) {
+		return event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_WIDTH;
+	}
+
+	private double calcuateHeight(MouseEvent event) {
+		return event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS;
+	}
+
+	private double calcuateWidth(MouseEvent event) {
+		return event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS;
+	}
+
 	public boolean inResizing() {
 		return (getScene().getCursor() != null && getScene().getCursor() != Cursor.DEFAULT);
 	}
 
-	private Cursor changeCursor(boolean sizeLeft, boolean sizeRight, boolean sizeTop, boolean sizeBottom) {
+	private void changeCursor(boolean sizeLeft, boolean sizeRight, boolean sizeTop, boolean sizeBottom) {
 		Cursor cursor = Cursor.DEFAULT;
+		ResizeMode mode = null;
+
 		if (sizeLeft) {
 			if (sizeTop) {
 				cursor = Cursor.NW_RESIZE;
+
+				mode = ResizeMode.NW;
 			} else if (sizeBottom) {
 				cursor = Cursor.SW_RESIZE;
+
+				mode = ResizeMode.SW;
 			} else {
 				cursor = Cursor.W_RESIZE;
+
+				mode = ResizeMode.W;
 			}
 		} else if (sizeRight) {
 			if (sizeTop) {
 				cursor = Cursor.NE_RESIZE;
+
+				mode = ResizeMode.NE;
 			} else if (sizeBottom) {
 				cursor = Cursor.SE_RESIZE;
+
+				mode = ResizeMode.SE;
 			} else {
 				cursor = Cursor.E_RESIZE;
+
+				mode = ResizeMode.E;
 			}
 		} else if (sizeTop) {
 			cursor = Cursor.N_RESIZE;
+
+			mode = ResizeMode.N;
 		} else if (sizeBottom) {
 			cursor = Cursor.S_RESIZE;
+
+			mode = ResizeMode.S;
 		}
-		return cursor;
+
+		resizeState.cursor = cursor;
+		resizeState.mode = mode;
 	}
 
 	private boolean valueInRange(double value, double min, double max) {
@@ -164,9 +258,24 @@ public class StageFloatable extends Stage {
 		setScene(scene);
 	}
 
+	private void initListeners() {
+		focusedListener = new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> value, Boolean oldValue, Boolean newValue) {
+				// Inform listeners about focus change
+				for (IDockGlobalListener listener : AnchorageSystem.getGlobalListeners()) {
+					listener.floatableFocusGained(StageFloatable.this);
+				}
+			}
+		};
+		focusedProperty().addListener(focusedListener);
+	}
+
 	private void createContainerPanel() {
 		WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
+
 		imageView = new ImageView(ghostImage);
+
 		stackPanelContainer = new StackPane(imageView);
 		transparentRootPanel = new StackPane(stackPanelContainer);
 		transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
@@ -193,6 +302,12 @@ public class StageFloatable extends Stage {
 	}
 
 	public void closeStage() {
+		// Reset focused listener
+		if (focusedListener != null) {
+			focusedProperty().removeListener(focusedListener);
+			focusedListener = null;
+		}
+
 		transparentRootPanel.getChildren().removeAll();
 		setScene(null);
 		hide();
@@ -200,5 +315,100 @@ public class StageFloatable extends Stage {
 
 	public Insets getPaddingOffset() {
 		return stackPanelContainer.getPadding();
+	}
+
+	/**
+	 * The current state of resizing
+	 * 
+	 * @author richard-lllll
+	 */
+	protected class ResizeState {
+
+		public ResizeMode mode = null;
+		public Cursor cursor = null;
+
+		public boolean isResizing() {
+			return mode != null;
+		}
+
+		public boolean E() {
+			return cursorEquals(ResizeMode.E);
+		}
+
+		public boolean W() {
+			return cursorEquals(ResizeMode.W);
+		}
+
+		public boolean N() {
+			return cursorEquals(ResizeMode.N);
+		}
+
+		public boolean S() {
+			return cursorEquals(ResizeMode.S);
+		}
+
+		public boolean NW() {
+			return cursorEquals(ResizeMode.NW);
+		}
+
+		public boolean SW() {
+			return cursorEquals(ResizeMode.SW);
+		}
+
+		public boolean NE() {
+			return cursorEquals(ResizeMode.NE);
+		}
+
+		public boolean SE() {
+			return cursorEquals(ResizeMode.SE);
+		}
+
+		private boolean cursorEquals(ResizeMode other) {
+			Cursor cursor = StageFloatable.this.getScene().getCursor();
+
+			if (other == ResizeMode.E) {
+				return cursor == Cursor.E_RESIZE;
+			}
+			if (other == ResizeMode.W) {
+				return cursor == Cursor.W_RESIZE;
+			}
+			if (other == ResizeMode.N) {
+				return cursor == Cursor.N_RESIZE;
+			}
+			if (other == ResizeMode.S) {
+				return cursor == Cursor.S_RESIZE;
+			}
+			if (other == ResizeMode.NW) {
+				return cursor == Cursor.NW_RESIZE;
+			}
+			if (other == ResizeMode.SW) {
+				return cursor == Cursor.SW_RESIZE;
+			}
+			if (other == ResizeMode.NE) {
+				return cursor == Cursor.NE_RESIZE;
+			}
+			if (other == ResizeMode.SE) {
+				return cursor == Cursor.SE_RESIZE;
+			}
+
+			return false;
+		}
+	}
+
+	/**
+	 * Directions of resizing
+	 * 
+	 * @author richard-lllll
+	 */
+	protected enum ResizeMode {
+		// West
+		W,
+		// East
+		E,
+
+		// North
+		N, NW, NE,
+		// South
+		S, SW, SE,
 	}
 }

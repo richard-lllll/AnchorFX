@@ -20,8 +20,11 @@
 package com.anchorage.docks.node.ui;
 
 import com.anchorage.docks.containers.SingleDockContainer;
+import com.anchorage.docks.containers.StageFloatable;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.stations.DockSubStation;
+import com.anchorage.system.AnchorageSystem;
+import com.anchorage.system.interfaces.IDockGlobalListener;
 
 import javafx.animation.RotateTransition;
 import javafx.geometry.Point2D;
@@ -102,12 +105,26 @@ public class DockCommandsBox extends HBox {
 		closeButton.getStyleClass().add("docknode-command-button-close");
 
 		closeButton.setOnAction(e -> {
+			boolean closed = false;
+
+			boolean floatingBefore = node.floatingProperty().get();
+			StageFloatable stageBefore = node.getFloatableStage();
+
 			if (node.getCloseRequestHandler() != null) {
 				if (node.getCloseRequestHandler().canClose()) {
 					node.undock();
+					closed = true;
 				}
 			} else {
 				node.undock();
+				closed = true;
+			}
+
+			if (closed) {
+				// Notify listeners
+				for (IDockGlobalListener listener : AnchorageSystem.getGlobalListeners()) {
+					listener.closingDockNodeFinished(node, stageBefore, floatingBefore);
+				}
 			}
 		});
 

@@ -30,8 +30,10 @@ import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.ui.DockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
+import com.anchorage.system.interfaces.IDockGlobalListener;
 import com.sun.javafx.css.StyleManager;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 
@@ -46,6 +48,8 @@ public class AnchorageSystem {
 	private static final Image emptySubstationIconImage;
 
 	private static DockStation currentStationFromDrag;
+
+	private static List<IDockGlobalListener> globalListeners = new ArrayList<>();
 
 	static {
 		stations = new ArrayList<>();
@@ -66,16 +70,20 @@ public class AnchorageSystem {
 	}
 
 	public static DockSubStation createSubStation(DockStation parentStation, String title) {
-		DockSubStation station = new DockSubStation(new DockUIPanel(title, new DockStation(), true, emptySubstationIconImage));
+		DockSubStation station = new DockSubStation(new DockUIPanel(title, null, new DockStation(), true, emptySubstationIconImage));
 		return station;
 	}
 
 	public static DockNode createDock(String title, Node content) {
-		return createDock(title, content, emptyIconImage);
+		return createDock(title, null, content, emptyIconImage);
 	}
 
-	public static DockNode createDock(String title, Node content, Image icon) {
-		DockUIPanel panel = new DockUIPanel(title, content, false, icon);
+	public static DockNode createDock(String title, String tooltip, Node content) {
+		return createDock(title, tooltip, content, emptyIconImage);
+	}
+
+	public static DockNode createDock(String title, String tooltip, Node content, Image icon) {
+		DockUIPanel panel = new DockUIPanel(title, tooltip, content, false, icon);
 		DockNode container = new DockNode(panel);
 		return container;
 	}
@@ -84,6 +92,9 @@ public class AnchorageSystem {
 		StyleManager.getInstance().addUserAgentStylesheet("AnchorFX.css");
 	}
 
+	/**
+	 * Prepare before drag
+	 */
 	public static void prepareDraggingZoneFor(DockStation station, DockNode source) {
 		currentStationFromDrag = station;
 		station.prepareZones(source);
@@ -104,10 +115,10 @@ public class AnchorageSystem {
 		}
 	}
 
-	public static void finalizeDragging() {
+	public static void finalizeDragging(Point2D dropTarget) {
 		if (currentStationFromDrag.isSubStation()) {
 			currentStationFromDrag.closeZones();
-			currentStationFromDrag.finalizeDrag();
+			currentStationFromDrag.finalizeDrag(dropTarget);
 		} else {
 			if (currentStationFromDrag.isCommonStation()) {
 				stations.stream().filter(s -> s.isCommonStation()).forEach(s -> s.closeZones());
@@ -117,11 +128,22 @@ public class AnchorageSystem {
 
 			DockStation selectedStation = stations.stream().filter(s -> s.isSelected()).findFirst().orElse(null);
 			if (selectedStation != null && currentStationFromDrag.isCommonStation()) {
-				selectedStation.finalizeDrag();
+				selectedStation.finalizeDrag(dropTarget);
 			} else {
-				currentStationFromDrag.finalizeDrag();
+				currentStationFromDrag.finalizeDrag(dropTarget);
 			}
 		}
+	}
 
+	public static void addGlobalListener(IDockGlobalListener listener) {
+		globalListeners.add(listener);
+	}
+
+	public static void removeGlobalListener(IDockGlobalListener listener) {
+		globalListeners.remove(listener);
+	}
+
+	public static List<IDockGlobalListener> getGlobalListeners() {
+		return globalListeners;
 	}
 }

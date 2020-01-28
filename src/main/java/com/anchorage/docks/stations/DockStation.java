@@ -27,7 +27,9 @@ import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.containers.zones.DockZones;
 import com.anchorage.docks.containers.zones.ZoneSelector;
 import com.anchorage.docks.node.DockNode;
+import com.anchorage.docks.node.interfaces.IDockStationListener;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -36,6 +38,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Window;
 
 /**
+ * A station to add docks to
+ * 
  * @author Alessio
  */
 public final class DockStation extends SingleDockContainer {
@@ -50,6 +54,9 @@ public final class DockStation extends SingleDockContainer {
 	private DockSubStation dockNodeForSubstation;
 	private boolean commonStation;
 	private boolean selected = false;
+
+	// List of listeners for operations
+	private List<IDockStationListener> listeners = new ArrayList<IDockStationListener>();
 
 	public DockStation() {
 		nodes = new ArrayList<>();
@@ -156,13 +163,15 @@ public final class DockStation extends SingleDockContainer {
 		tabContainer.manageDragOnSameNode(dockZones.getCurrentNodeTarget(), dockZones.getCurrentPosition());
 	}
 
-	public void finalizeDrag() {
+	public void finalizeDrag(Point2D dropTarget) {
 		if (currentNodeMaximized != null) {
 			return;
 		}
+
 		ZoneSelector selector = dockZones.getCurrentZoneSelector();
+
 		if (selector == null) {
-			dockZones.getNodeSource().makeNodeActiveOnFloatableStage(getScene().getWindow(), getScene().getX(), getScene().getY());
+			dockZones.getNodeSource().makeNodeActiveOnFloatableStage(getScene().getWindow(), dropTarget.getX(), dropTarget.getY());
 		} else {
 			DockNode.DockPosition position = selector.getPosition();
 			if (selector.isStationZone()) {
@@ -172,10 +181,25 @@ public final class DockStation extends SingleDockContainer {
 				manageDockDestination();
 			}
 		}
+
+		DockNode nodeSource = dockZones.getNodeSource();
+		for (IDockStationListener listener : listeners) {
+			listener.dockFinished(nodeSource);
+		}
 	}
 
 	public void closeZones() {
 		dockZones.close();
+	}
+
+	@Override
+	public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
+		super.putDock(node, position, percentage);
+
+		// Listener
+		for (IDockStationListener listener : listeners) {
+			listener.putDockFinished(node);
+		}
 	}
 
 	private void manageDockDestination() {
@@ -216,6 +240,14 @@ public final class DockStation extends SingleDockContainer {
 		}
 	}
 
+	public void addListener(IDockStationListener listener) {
+		this.listeners.add(listener);
+	}
+
+	public void removeListener(IDockStationListener listener) {
+		this.listeners.remove(listener);
+	}
+
 	public void markAsSubStation(DockSubStation dockNodeForSubstation) {
 		substation = true;
 		this.dockNodeForSubstation = dockNodeForSubstation;
@@ -223,6 +255,10 @@ public final class DockStation extends SingleDockContainer {
 
 	public DockSubStation getDockNodeForSubStation() {
 		return dockNodeForSubstation;
+	}
+
+	public List<DockNode> getNodes() {
+		return nodes;
 	}
 
 }

@@ -21,11 +21,13 @@ package com.anchorage.docks.containers.subcontainers;
 import com.anchorage.docks.containers.common.DockCommons;
 import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.node.DockNode;
+import com.anchorage.docks.node.ui.DockUIPanel;
 
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 
 /**
  * @author Alessio
@@ -41,19 +43,29 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 	}
 
 	public Tab addAsTab(DockNode node) {
-		Tab newTab = new Tab(node.getContent().titleProperty().get());
+		DockUIPanel content = node.getContent();
+		Label tabLabel = new Label(content.titleProperty().get());
+
+		Tab newTab = new Tab(content.titleProperty().get());
 		getTabs().add(newTab);
 		newTab.setContent(node);
 		newTab.setText("");
-		newTab.setGraphic(new Label(node.getContent().titleProperty().get()));
-//    node.getContent().installDragEventManager(newTab.getGraphic());
+		newTab.setGraphic(tabLabel);
+
+		if (content.getTooltip() != null) {
+			tabLabel.setTooltip(new Tooltip(content.getTooltip()));
+		}
+
+		node.installDragEventManager(newTab.getGraphic());
 		node.setParentContainer(this);
 		newTab.closableProperty().bind(node.closeableProperty());
 		newTab.setOnCloseRequest(event -> {
 			if (node.getCloseRequestHandler() == null || node.getCloseRequestHandler().canClose()) {
 				node.undock();
-				event.consume();
 			}
+
+			// Consume event in any cases (also prevents closing if canClose() == false)
+			event.consume();
 		});
 		return newTab;
 	}
@@ -67,7 +79,7 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		container = splitter;
 	}
 
-	private Tab getTabByNode(DockNode node) {
+	public Tab getTabByNode(DockNode node) {
 		return getTabs().stream().filter(t -> t.getContent() == node).findFirst().orElse(null);
 	}
 

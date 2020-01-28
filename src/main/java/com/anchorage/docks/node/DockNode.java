@@ -34,6 +34,7 @@ import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.interfaces.DockNodeCloseRequestHandler;
 import com.anchorage.docks.node.interfaces.DockNodeCreationListener;
+import com.anchorage.docks.node.interfaces.IDockNodeListener;
 import com.anchorage.docks.node.ui.DockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
@@ -52,13 +53,21 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 
 public class DockNode extends StackPane implements DockContainableComponent {
+
+	/** Mouse distance to be move before drag is started (for tabs) */
+	private static final double DRAG_THRESHOLD_PX_TAB_HEADER = 14;
+
+	/** No mouse distance to apply dragging (for stage title bar) */
+	private static final double DRAG_THRESHOLD_NONE = 0;
 
 	private DockUIPanel content;
 	private BooleanProperty floatableProperty;
@@ -75,9 +84,16 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	private double floatingStateCoordinateY;
 	private double floatingStateWidth;
 	private double floatingStateHeight;
-	private DockNodeCloseRequestHandler closeRequestHanlder;
+
+	private DockNodeCloseRequestHandler closeRequestHandler;
+	private IDockNodeListener dockNodeListener;
+
 	private Point2D dragWindowOffset;
+	private Point2D dragStartPosition;
+
 	private NodeDraggingPreview nodePreview;
+
+	private boolean maximizeOnDoubleClick = false;
 
 	private DockNode() {
 		station = new SimpleObjectProperty<>(null);
@@ -89,6 +105,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		draggingProperty = new ReadOnlyBooleanWrapper(false);
 		maximizingProperty = new ReadOnlyBooleanWrapper(false);
 		container = new ReadOnlyObjectWrapper<>(null);
+
 //    floatingProperty.addListener((observable, oldValue, newValue) -> {
 //      if(newValue) {
 //        installNullDragManager(
@@ -102,7 +119,6 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	}
 
 	public DockNode(DockUIPanel node) {
-
 		this();
 
 		this.content = node;
@@ -127,38 +143,96 @@ public class DockNode extends StackPane implements DockContainableComponent {
 
 	public void installDragEventManager(Node n) {
 		n.setOnMouseClicked(event -> {
-			if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+			if (maximizeOnDoubleClick && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
 				maximizeOrRestore();
 			}
 		});
+
 		n.setOnMouseDragged(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
 				if (maximizingProperty().get()) {
 					return;
 				}
-				if (!draggingProperty().get()) {
-					enableDragging();
-					dragWindowOffset = content.screenToLocal(event.getScreenX(), event.getScreenY());
-					if (floatingProperty().get()) {
-						moveFloatable(event.getScreenX(), event.getScreenY());
+
+				boolean dragging = draggingProperty().get();
+
+				boolean isFloating = floatingProperty.get();
+
+				if (dragging) {
+					double floatableX = event.getScreenX() - dragWindowOffset.getX();
+					double floatableY = event.getScreenY() - dragWindowOffset.getY();
+
+					if (isFloating) {
+						// Floatable
+
+						moveFloatable(floatableX, floatableY);
 					} else {
-						showDraggedNodePreview(event.getScreenX() - dragWindowOffset.getX(), event.getScreenY() - dragWindowOffset.getY());
-					}
-					if (!maximizingProperty().get()) {
-						AnchorageSystem.prepareDraggingZoneFor(stationProperty().get(), this);
-					}
-				} else {
-					if (floatingProperty().get()) {
-						moveFloatable(event.getScreenX() - dragWindowOffset.getX(), event.getScreenY() - dragWindowOffset.getY());
-					} else {
+						// Preview
+
 						nodePreview.setX(event.getScreenX() - dragWindowOffset.getX());
 						nodePreview.setY(event.getScreenY() - dragWindowOffset.getY());
 					}
+
 					stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
 					AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
+				} else {
+					Point2D mousePosition = new Point2D(event.getScreenX(), event.getScreenY());
+					if (dragStartPosition == null) {
+						dragStartPosition = new Point2D(mousePosition.getX(), mousePosition.getY());
+						highlightSource(event, true);
+
+						return;
+					}
+
+					double threshold = DRAG_THRESHOLD_PX_TAB_HEADER;
+
+					Object sourceObj = event.getSource();
+					if (sourceObj instanceof Node) {
+						Node node = (Node) sourceObj;
+						ObservableList<String> styles = node.getStyleClass();
+
+						boolean isTitleBar = styles.contains("docknode-title-bar");
+						if (isTitleBar) {
+							// Is title bar: no threshold
+
+							threshold = DRAG_THRESHOLD_NONE;
+						}
+					}
+
+					if (mousePosition.distance(dragStartPosition) < threshold) {
+						// Do not drag if distance from mouse down is not high enough
+						return;
+					}
+
+					// Start dragging
+
+					enableDragging();
+
+					dragWindowOffset = content.screenToLocal(event.getScreenX(), event.getScreenY());
+
+					// Position correction
+					dragWindowOffset = dragWindowOffset.add(10, 10);
+
+					double posX = event.getScreenX() - dragWindowOffset.getX();
+					double posY = event.getScreenY() - dragWindowOffset.getY();
+
+					if (isFloating) {
+						// Floatable
+
+						moveFloatable(posX, posY);
+					} else {
+						// Preview
+
+						showDraggedNodePreview(posX, posY);
+					}
+
+					if (!maximizingProperty().get()) {
+						AnchorageSystem.prepareDraggingZoneFor(stationProperty().get(), this);
+					}
 				}
 			}
 		});
+
 		n.setOnMouseReleased(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
 				if (draggingProperty().get() && !maximizingProperty().get()) {
@@ -166,10 +240,38 @@ public class DockNode extends StackPane implements DockContainableComponent {
 						nodePreview.closeStage();
 						nodePreview = null;
 					}
-					AnchorageSystem.finalizeDragging();
+
+					double dropTargetX = event.getScreenX() - dragWindowOffset.getX();
+					double dropTargetY = event.getScreenY() - dragWindowOffset.getY();
+
+					Point2D dropTarget = new Point2D(dropTargetX, dropTargetY);
+
+					AnchorageSystem.finalizeDragging(dropTarget);
 				}
+
+				// Reset highlighting
+				highlightSource(event, false);
+				dragStartPosition = null;
 			}
 		});
+	}
+
+	/**
+	 * Give feedback to user: Drag possible
+	 */
+	private void highlightSource(MouseEvent event, boolean highlighted) {
+		Object source = event.getSource();
+		if (source instanceof Node) {
+			Node node = (Node) source;
+
+			if (highlighted) {
+				Glow glow = new Glow();
+				glow.setLevel(0.6);
+				node.setEffect(glow);
+			} else {
+				node.setEffect(null);
+			}
+		}
 	}
 
 	private void callCreationCallBack() {
@@ -185,12 +287,16 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	}
 
 	public DockNodeCloseRequestHandler getCloseRequestHandler() {
-		return closeRequestHanlder;
+		return closeRequestHandler;
 	}
 
 	public void setCloseRequestHandler(DockNodeCloseRequestHandler handler) {
 		Objects.requireNonNull(handler);
-		closeRequestHanlder = handler;
+		closeRequestHandler = handler;
+	}
+
+	public void setDockNodeListener(IDockNodeListener dockNodeListener) {
+		this.dockNodeListener = dockNodeListener;
 	}
 
 	public BooleanProperty floatableProperty() {
@@ -240,8 +346,14 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		return containerProperty().get() == null || floatingProperty.get() || container.get().isDockVisible(this);
 	}
 
+	/**
+	 * If this DockNode is in a stage: Close stage
+	 */
 	public void closeFloatingStage() {
 		if (stageFloatable != null) {
+			// Listener
+			dockNodeListener.dockNodeBeforeCloseStage(stageFloatable);
+
 			stageFloatable.closeStage();
 			stageFloatable = null;
 		}
@@ -335,6 +447,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 			ensureVisibility();
 			return;
 		}
+
 		station.add(this);
 		stageFloatable = new StageFloatable(this, owner, x, y);
 		stageFloatable.makeNodeActiveOnFloatableStage();
@@ -342,7 +455,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		stageFloatable.setWidth(width);
 		stageFloatable.setHeight(height);
 		floatingProperty.set(true);
-		this.station.set((DockStation) station);
+		this.station.set(station);
 	}
 
 	public void dock(DockStation station, DockPosition position) {
@@ -352,7 +465,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		}
 		station.add(this);
 		station.putDock(this, position, 0.5);
-		this.station.set((DockStation) station);
+		this.station.set(station);
 	}
 
 	public void dock(DockStation station, DockPosition position, double percentage) {
@@ -362,7 +475,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		}
 		station.add(this);
 		station.putDock(this, position, percentage);
-		this.station.set((DockStation) station);
+		this.station.set(station);
 	}
 
 	public void dock(DockNode nodeTarget, DockPosition position) {
@@ -399,6 +512,7 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		if (stationProperty().get() == null) {
 			return;
 		}
+
 		boolean isFloating = floatingProperty.get();
 		restore();
 		if (getParentContainer() != null) {
@@ -408,6 +522,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
 			closeFloatingStage();
 			station.get().remove(this);
 			station.set(null);
+		}
+
+		if (dockNodeListener != null) {
+			dockNodeListener.dockNodeUndocked(this);
 		}
 	}
 
@@ -431,6 +549,12 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	public boolean checkForTarget(double x, double y) {
 		Point2D screenToScenePoint = getScene().getRoot().screenToLocal(x, y);
 		Bounds sceneBounds = getSceneBounds();
+
+		if (screenToScenePoint == null) {
+			// Workaround, can be null after dock in floatable
+			return false;
+		}
+
 		return sceneBounds.contains(screenToScenePoint.getX(), screenToScenePoint.getY());
 	}
 
@@ -489,6 +613,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
 
 	public boolean isMenuButtonEnable() {
 		return content.isMenuButtonEnable();
+	}
+
+	public void setMaximizeOnDoubleClick(boolean maximizeOnDoubleClick) {
+		this.maximizeOnDoubleClick = maximizeOnDoubleClick;
 	}
 
 	public enum DockPosition {
