@@ -16,27 +16,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+ 
 /* 
     Created on : 27-dic-2015, 13.25.27
     Author     : Alessio Vinerbi
 */
 
+/*
+	Brighter design
+	
+    Modified   : 28-Jan-2020
+    Author     : richard-lllll
+*/
+
 .docknode-title-bar {
-    -fx-background-color: rgb(100,100,100);
+    -fx-background-color: #F0F0F0;
 }
 
 .docknode-title-text{
-    -fx-text-fill: rgb(255,255,255);
+    -fx-text-fill: rgb(0,0,0);
 }
 
 .docknode-content-panel{
-    -fx-background-color: rgb(100,100,100);
+    -fx-background-color: #fff;
     -fx-padding: 0
 }
 
 .docknode-floating-stack-container-panel {
-    -fx-background-color: rgb(100,100,100);
-    -fx-padding: 4
+    -fx-background-color: #F0F0F0;
+    -fx-padding: 4;
 }
  
 .docknode-split-pane {  
@@ -45,8 +53,8 @@
 
 .docknode-split-pane *.split-pane-divider {  
     -fx-padding: 2;  
-    -fx-border-color:transparent;
-    -fx-color: darkgray;
+    -fx-border-color: #ABADB3;
+    -fx-color: #F0F0F0;
 } 
 
 .docknode-tab-panel{
@@ -76,11 +84,11 @@
 }
 
 .docknode-command-button-close:pressed{
-    -fx-background-color:red;
+    -fx-background-color: #E81123;
 }
 
 .docknode-command-button-close:hover{
-    -fx-background-color:red;
+    -fx-background-color: #E81123;
 }
 
 .docknode-command-button-close:focused{
@@ -88,7 +96,7 @@
 } 
 
 .station {
-    -fx-background-color: rgb(0,0,0);
+    -fx-background-color: #F0F0F0;
     -fx-padding: 0
 }
 
@@ -101,13 +109,13 @@
 }
 
 .dockzone-circle-container-selectors {
-    -fx-fill: rgba(0,0,0,0.7);
+    -fx-fill: rgba(0,0,0,0.2);
 }
 
 .dockzone-circle-selector {
-    -fx-fill: rgba(0,0,0,0.8);
+    -fx-fill: rgba(0,0,0,0.3);
 }
 
 .dockzone-rectangle-preview {
-    -fx-fill: rgba(63,138,163,0.8);
+    -fx-fill: rgba(63,138,163,0.6);
 }
