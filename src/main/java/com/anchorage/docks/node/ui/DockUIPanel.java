@@ -44,7 +44,11 @@ import javafx.scene.layout.StackPane;
  */
 public final class DockUIPanel extends Pane {
 
+	/** Height of the bar panels in pixels */
 	public static final double BAR_HEIGHT = 25;
+
+	/** If true, new docks will show the bar panels; set to false to hide bar panels by default */
+	public static boolean SHOW_NEW_BAR_PANELS = true;
 
 	private Node nodeContent;
 	private Label titleLabel;
@@ -70,14 +74,18 @@ public final class DockUIPanel extends Pane {
 	public DockUIPanel(String title, String tooltip, Node _nodeContent, boolean _substationType, Image imageIcon) {
 		this.tooltip = tooltip;
 
-		getStylesheets().add("AnchorFX.css");
+		// Deactivated: Use AnchorageSystem.installDefaultStyle() instead
+		// getStylesheets().add("AnchorFX.css");
+
 		substationType = _substationType;
 		Objects.requireNonNull(_nodeContent);
 		Objects.requireNonNull(title);
 		nodeContent = _nodeContent;
 		buildNode(title, imageIcon);
 
-		hideBarPanel();
+		if (!SHOW_NEW_BAR_PANELS) {
+			hideBarPanel();
+		}
 	}
 
 	public Node getNodeForDraggingManagement() {

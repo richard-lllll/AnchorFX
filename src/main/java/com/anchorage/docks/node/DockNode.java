@@ -351,8 +351,10 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	 */
 	public void closeFloatingStage() {
 		if (stageFloatable != null) {
-			// Listener
-			dockNodeListener.dockNodeBeforeCloseStage(stageFloatable);
+			if (dockNodeListener != null) {
+				// Listener
+				dockNodeListener.dockNodeBeforeCloseStage(stageFloatable);
+			}
 
 			stageFloatable.closeStage();
 			stageFloatable = null;

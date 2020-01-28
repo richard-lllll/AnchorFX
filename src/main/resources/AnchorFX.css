@@ -23,7 +23,7 @@
 */
 
 /*
-	Brighter design
+    Brighter design
 	
     Modified   : 28-Jan-2020
     Author     : richard-lllll
@@ -118,4 +118,14 @@
 
 .dockzone-rectangle-preview {
     -fx-fill: rgba(63,138,163,0.6);
+}
+
+.tooltip {
+	-fx-background-color: #FFFFCC;
+	-fx-border-color: #767676;
+	-fx-text-fill: #000;
+	
+	-fx-font-size: 1.0em;
+	
+	-fx-padding: 2 9 2 9;
 }

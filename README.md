@@ -1,5 +1,14 @@
 ![Anchorfx logo](/src/main/resources/anchorfx.png)
 
+### Modifications done in this fork (richard-lllll)
+
+ * CSS: Brighter design, icons inverted to black color
+ * Hide/Show dock title bars
+ * Tabs ("Tabber"): Threshold for dragging out, tooltips added
+ * Some smaller changes/bugfixes
+
+![New: Brighter Design](doc/design_brighter.png)
+
 ### Docking framework for JavaFX platform
 
 ![Anchorfx logo](/src/main/resources/screenshot.png)
@@ -15,7 +24,6 @@ AnchorFX is a gratis and open source library for JavaFX to create graphical inte
  * Dockable and floatable panels
  * Splitter and Tabs containers support
  * CSS styling
-
 
 #### Usage
 
@@ -110,21 +118,21 @@ The nodes that are associated with a DockSubStation can only be moved within the
  ```css
 
 .docknode-title-bar {
-    -fx-background-color: rgb(100,100,100);
+    -fx-background-color: #F0F0F0;
 }
 
 .docknode-title-text{
-    -fx-text-fill: rgb(255,255,255);
+    -fx-text-fill: rgb(0,0,0);
 }
 
 .docknode-content-panel{
-    -fx-background-color: rgb(100,100,100);
+    -fx-background-color: #fff;
     -fx-padding: 0
 }
 
 .docknode-floating-stack-container-panel {
-    -fx-background-color: rgb(100,100,100);
-    -fx-padding: 4
+    -fx-background-color: #F0F0F0;
+    -fx-padding: 4;
 }
  
 .docknode-split-pane {  
@@ -133,8 +141,8 @@ The nodes that are associated with a DockSubStation can only be moved within the
 
 .docknode-split-pane *.split-pane-divider {  
     -fx-padding: 2;  
-    -fx-border-color:transparent;
-    -fx-color: darkgray;
+    -fx-border-color: #ABADB3;
+    -fx-color: #F0F0F0;
 } 
 
 .docknode-tab-panel{
@@ -164,11 +172,11 @@ The nodes that are associated with a DockSubStation can only be moved within the
 }
 
 .docknode-command-button-close:pressed{
-    -fx-background-color:red;
+    -fx-background-color: #E81123;
 }
 
 .docknode-command-button-close:hover{
-    -fx-background-color:red;
+    -fx-background-color: #E81123;
 }
 
 .docknode-command-button-close:focused{
@@ -176,7 +184,7 @@ The nodes that are associated with a DockSubStation can only be moved within the
 } 
 
 .station {
-    -fx-background-color: rgb(0,0,0);
+    -fx-background-color: #F0F0F0;
     -fx-padding: 0
 }
 
@@ -189,16 +197,27 @@ The nodes that are associated with a DockSubStation can only be moved within the
 }
 
 .dockzone-circle-container-selectors {
-    -fx-fill: rgba(0,0,0,0.7);
+    -fx-fill: rgba(0,0,0,0.2);
 }
 
 .dockzone-circle-selector {
-    -fx-fill: rgba(0,0,0,0.8);
+    -fx-fill: rgba(0,0,0,0.3);
 }
 
 .dockzone-rectangle-preview {
-    -fx-fill: rgba(63,138,163,0.8);
+    -fx-fill: rgba(63,138,163,0.6);
 }
+
+.tooltip {
+	-fx-background-color: #FFFFCC;
+	-fx-border-color: #767676;
+	-fx-text-fill: #000;
+	
+	-fx-font-size: 1.0em;
+	
+	-fx-padding: 2 9 2 9;
+}
+
 ```
  
  
