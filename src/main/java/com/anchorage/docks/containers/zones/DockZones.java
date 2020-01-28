@@ -47,6 +47,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 /**
+ * The visible drop targets
  *
  * @author avinerbi
  */

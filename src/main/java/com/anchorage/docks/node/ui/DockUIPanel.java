@@ -20,11 +20,9 @@ package com.anchorage.docks.node.ui;
 
 import java.util.Objects;
 
-import com.anchorage.docks.containers.NodeDraggingPreview;
 import com.anchorage.docks.node.DockNode;
 
 import javafx.beans.property.StringProperty;
-import javafx.geometry.Point2D;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -34,6 +32,14 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 /**
+ * Component to shown dock
+ * 
+ * Adds:
+ * - Icon
+ * - Title
+ * - Tooltip
+ * - CommandsBox
+ * 
  * @author Alessio
  */
 public final class DockUIPanel extends Pane {
@@ -42,23 +48,36 @@ public final class DockUIPanel extends Pane {
 
 	private Node nodeContent;
 	private Label titleLabel;
+	private String tooltip;
 	private Pane barPanel;
 	private StackPane contentPanel;
 	private DockCommandsBox commandsBox;
 	private DockNode node;
-	private Point2D deltaDragging;
+
 	private boolean substationType;
 	private ImageView iconView;
-	private NodeDraggingPreview nodePreview;
 
+	/**
+	 * Konstruktor
+	 */
 	public DockUIPanel(String title, Node _nodeContent, boolean _substationType, Image imageIcon) {
+		this(title, null, _nodeContent, _substationType, imageIcon);
+	}
+
+	/**
+	 * Konstruktor, with Tooltip
+	 */
+	public DockUIPanel(String title, String tooltip, Node _nodeContent, boolean _substationType, Image imageIcon) {
+		this.tooltip = tooltip;
+
 		getStylesheets().add("AnchorFX.css");
 		substationType = _substationType;
 		Objects.requireNonNull(_nodeContent);
 		Objects.requireNonNull(title);
 		nodeContent = _nodeContent;
 		buildNode(title, imageIcon);
-//    installDragEventManager(barPanel);
+
+		hideBarPanel();
 	}
 
 	public Node getNodeForDraggingManagement() {
@@ -87,68 +106,41 @@ public final class DockUIPanel extends Pane {
 		return titleLabel.textProperty();
 	}
 
-//  public void installDragEventManager(Node n) {
-//    n.setOnMouseClicked(event -> {
-//      if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-//        node.maximizeOrRestore();
-//      }
-//    });
-//    n.setOnMouseDragged(event -> {
-//      if (event.getButton() == MouseButton.PRIMARY) {
-//        manageDragEvent(event);
-//      }
-//    });
-//    n.setOnMouseReleased(event -> {
-//      if (event.getButton() == MouseButton.PRIMARY) {
-//        manageReleaseEvent();
-//      }
-//    });
-//  }
+	public void setTooltip(String tooltip) {
+		this.tooltip = tooltip;
+	}
 
-//  private void manageDragEvent(MouseEvent event) {
-//    if (node.maximizingProperty().get()) {
-//      return;
-//    }
-//    if (!node.draggingProperty().get()) {
-//
-//      Bounds bounds = node.localToScreen(barPanel.getBoundsInLocal());
-//      deltaDragging = new Point2D(event.getScreenX() - bounds.getMinX(),
-//          event.getScreenY() - bounds.getMinY());
-//      showDraggedNodePreview(event.getScreenX() - deltaDragging.getX(),
-//          event.getScreenY() - deltaDragging.getY());
-//      if (!node.maximizingProperty().get()) {
-//        AnchorageSystem.prepareDraggingZoneFor(node.stationProperty().get(), node);
-//      }
-//    } else {
-//      if (node.draggingProperty().get()) {
-////          node.moveFloatable(event.getScreenX() - deltaDragging.getX(),
-////              event.getScreenY() - deltaDragging.getY());
-//        nodePreview.setX(event.getScreenX() - deltaDragging.getX());
-//        nodePreview.setY(event.getScreenY() - deltaDragging.getY());
-//        node.stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
-//        AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
-//
-//      }
-//    }
-//  }
+	public String getTooltip() {
+		return tooltip;
+	}
 
-//  private void showDraggedNodePreview(double x, double y) {
-//    node.enableDragging();
-//    if (nodePreview != null) {
-//      nodePreview.closeStage();
-//    }
-//    nodePreview = new NodeDraggingPreview(node, node.stationProperty().get().getScene().getWindow(),
-//        x, y);
-//    nodePreview.show();
-//  }
+	/**
+	 * Hide the top bar
+	 */
+	public void hideBarPanel() {
+		this.barPanel.setVisible(false);
 
-//  private void manageReleaseEvent() {
-//    if (node.draggingProperty().get() && !node.maximizingProperty().get()) {
-//      AnchorageSystem.finalizeDragging();
-//      nodePreview.closeStage();
-//      nodePreview = null;
-//    }
-//  }
+		contentPanel.relocate(0, 0);
+
+		contentPanel.prefHeightProperty().bind(heightProperty());
+	}
+
+	/**
+	 * Show the top bar
+	 */
+	public void showBarPanel() {
+		this.barPanel.setVisible(true);
+
+		contentPanel.relocate(0, BAR_HEIGHT);
+
+		contentPanel.prefHeightProperty().bind(heightProperty().subtract(BAR_HEIGHT));
+	}
+
+	public void destroy() {
+		contentPanel.getChildren().clear();
+
+		nodeContent = null;
+	}
 
 	private void buildNode(String title, Image iconImage) {
 		Objects.requireNonNull(iconImage);

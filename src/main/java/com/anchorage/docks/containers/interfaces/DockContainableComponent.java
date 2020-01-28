@@ -19,7 +19,11 @@
 package com.anchorage.docks.containers.interfaces;
 
 /**
- *
+ * Component that can contain docks
+ * - StackPane
+ * - Tabber
+ * - Splitter
+ * 
  * @author Alessio
  */
 public interface DockContainableComponent {

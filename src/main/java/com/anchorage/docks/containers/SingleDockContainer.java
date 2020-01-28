@@ -30,6 +30,9 @@ import com.anchorage.docks.stations.DockStation;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 
+/**
+ * Container that receives different docks
+ */
 public class SingleDockContainer extends StackPane implements DockContainer {
 
 	private DockContainer container;
