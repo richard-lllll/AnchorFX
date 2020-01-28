@@ -24,6 +24,7 @@ import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_N
 
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.stations.DockStation;
+
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -42,184 +43,162 @@ import javafx.stage.Window;
 
 public class StageFloatable extends Stage {
 
-  private DockNode node;
-  private StackPane transparentRootPanel;
-  private StackPane stackPanelContainer;
-  private Window owner;
-  private double startX;
-  private double startWidth;
-  private double startY;
-  private double startHeight;
-  private ImageView imageView;
+	private DockNode node;
+	private StackPane transparentRootPanel;
+	private StackPane stackPanelContainer;
+	private Window owner;
+	private double startX;
+	private double startWidth;
+	private double startY;
+	private double startHeight;
+	private ImageView imageView;
 
-  public StageFloatable(DockNode node, Window owner, double startX, double startY) {
-    super();
-    this.node = node;
-    this.owner = owner;
-    buildUI(startX, startY);
-  }
+	public StageFloatable(DockNode node, Window owner, double startX, double startY) {
+		super();
+		this.node = node;
+		this.owner = owner;
+		buildUI(startX, startY);
+	}
 
-  private void setupMouseEvents() {
-    EventHandler<MouseEvent> eventsHandler = event -> {
-      if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
-        startWidth = getWidth();
-        startX = getX();
-        startHeight = getHeight();
-        startY = getY();
-      }
-      if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
-        boolean sizeRight = valueInRange(event.getX(),
-            stackPanelContainer.getWidth() - Math.max(stackPanelContainer.getPadding().getLeft(), 2),
-            stackPanelContainer.getWidth());
-        boolean sizeLeft = valueInRange(event.getX(), 0,
-            Math.max(stackPanelContainer.getPadding().getRight(), 2));
-        boolean sizeTop = valueInRange(event.getY(), 0, Math.max(stackPanelContainer.getPadding().getTop(), 2));
-        boolean sizeBottom = valueInRange(event.getY(),
-            stackPanelContainer.getHeight() - Math.max(stackPanelContainer.getPadding().getBottom(), 2),
-            stackPanelContainer.getHeight());
-        Cursor cursor = changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
-        getScene().setCursor(cursor);
-      }
-      if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && (getScene().getCursor() != null
-          && getScene().getCursor() != Cursor.DEFAULT)) {
-        if (getScene().getCursor() == Cursor.E_RESIZE || getScene().getCursor() == Cursor.SE_RESIZE
-            || getScene().getCursor() == Cursor.NE_RESIZE) {
-          if (event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS
-              > FLOATING_NODE_MINIMUM_WIDTH) {
-            setWidth(event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS);
-          }
-        } else if (getScene().getCursor() == Cursor.S_RESIZE
-            || getScene().getCursor() == Cursor.SE_RESIZE
-            || getScene().getCursor() == Cursor.SW_RESIZE) {
-          if (event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS
-              > FLOATING_NODE_MINIMUM_HEIGHT) {
-            setHeight(event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS);
-          }
-        } else if (getScene().getCursor() == Cursor.W_RESIZE
-            || getScene().getCursor() == Cursor.NW_RESIZE
-            || getScene().getCursor() == Cursor.SW_RESIZE) {
-          double newX = event.getScreenX() - FLOATING_NODE_DROPSHADOW_RADIUS;
-          double newWidth = startX - newX + startWidth;
-          if (newWidth > FLOATING_NODE_MINIMUM_WIDTH) {
-            setX(newX);
-            setWidth(newWidth);
-          }
-        } else if (getScene().getCursor() == Cursor.N_RESIZE
-            || getScene().getCursor() == Cursor.NW_RESIZE
-            || getScene().getCursor() == Cursor.NE_RESIZE) {
-          double newY = event.getScreenY() - FLOATING_NODE_DROPSHADOW_RADIUS;
-          double newHeight = startY - newY + startHeight;
-          if (newHeight > FLOATING_NODE_MINIMUM_HEIGHT) {
-            setY(newY);
-            setHeight(newHeight);
-          }
-        }
-      }
-            /*
-            else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
-                // TODO: handle this event?
-            }
-            */
-    };
-    stackPanelContainer.addEventFilter(MouseEvent.MOUSE_PRESSED, eventsHandler);
-    stackPanelContainer.addEventFilter(MouseEvent.MOUSE_MOVED, eventsHandler);
-    stackPanelContainer.addEventFilter(MouseEvent.MOUSE_DRAGGED, eventsHandler);
-    stackPanelContainer.addEventFilter(MouseEvent.MOUSE_RELEASED, eventsHandler);
-  }
+	private void setupMouseEvents() {
+		EventHandler<MouseEvent> eventsHandler = event -> {
+			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
+				startWidth = getWidth();
+				startX = getX();
+				startHeight = getHeight();
+				startY = getY();
+			}
+			if (event.getEventType() == MouseEvent.MOUSE_MOVED) {
+				boolean sizeRight = valueInRange(event.getX(), stackPanelContainer.getWidth() - Math.max(stackPanelContainer.getPadding().getLeft(), 2),
+						stackPanelContainer.getWidth());
+				boolean sizeLeft = valueInRange(event.getX(), 0, Math.max(stackPanelContainer.getPadding().getRight(), 2));
+				boolean sizeTop = valueInRange(event.getY(), 0, Math.max(stackPanelContainer.getPadding().getTop(), 2));
+				boolean sizeBottom = valueInRange(event.getY(), stackPanelContainer.getHeight() - Math.max(stackPanelContainer.getPadding().getBottom(), 2),
+						stackPanelContainer.getHeight());
+				Cursor cursor = changeCursor(sizeLeft, sizeRight, sizeTop, sizeBottom);
+				getScene().setCursor(cursor);
+			}
+			if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && (getScene().getCursor() != null && getScene().getCursor() != Cursor.DEFAULT)) {
+				if (getScene().getCursor() == Cursor.E_RESIZE || getScene().getCursor() == Cursor.SE_RESIZE || getScene().getCursor() == Cursor.NE_RESIZE) {
+					if (event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_WIDTH) {
+						setWidth(event.getScreenX() - getX() + FLOATING_NODE_DROPSHADOW_RADIUS);
+					}
+				} else if (getScene().getCursor() == Cursor.S_RESIZE || getScene().getCursor() == Cursor.SE_RESIZE || getScene().getCursor() == Cursor.SW_RESIZE) {
+					if (event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS > FLOATING_NODE_MINIMUM_HEIGHT) {
+						setHeight(event.getScreenY() - getY() + FLOATING_NODE_DROPSHADOW_RADIUS);
+					}
+				} else if (getScene().getCursor() == Cursor.W_RESIZE || getScene().getCursor() == Cursor.NW_RESIZE || getScene().getCursor() == Cursor.SW_RESIZE) {
+					double newX = event.getScreenX() - FLOATING_NODE_DROPSHADOW_RADIUS;
+					double newWidth = startX - newX + startWidth;
+					if (newWidth > FLOATING_NODE_MINIMUM_WIDTH) {
+						setX(newX);
+						setWidth(newWidth);
+					}
+				} else if (getScene().getCursor() == Cursor.N_RESIZE || getScene().getCursor() == Cursor.NW_RESIZE || getScene().getCursor() == Cursor.NE_RESIZE) {
+					double newY = event.getScreenY() - FLOATING_NODE_DROPSHADOW_RADIUS;
+					double newHeight = startY - newY + startHeight;
+					if (newHeight > FLOATING_NODE_MINIMUM_HEIGHT) {
+						setY(newY);
+						setHeight(newHeight);
+					}
+				}
+			}
+			/*
+			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
+			    // TODO: handle this event?
+			}
+			*/
+		};
+		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_PRESSED, eventsHandler);
+		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_MOVED, eventsHandler);
+		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_DRAGGED, eventsHandler);
+		stackPanelContainer.addEventFilter(MouseEvent.MOUSE_RELEASED, eventsHandler);
+	}
 
-  public boolean inResizing() {
-    return (getScene().getCursor() != null && getScene().getCursor() != Cursor.DEFAULT);
-  }
+	public boolean inResizing() {
+		return (getScene().getCursor() != null && getScene().getCursor() != Cursor.DEFAULT);
+	}
 
-  private Cursor changeCursor(boolean sizeLeft, boolean sizeRight, boolean sizeTop,
-      boolean sizeBottom) {
-    Cursor cursor = Cursor.DEFAULT;
-    if (sizeLeft) {
-      if (sizeTop) {
-        cursor = Cursor.NW_RESIZE;
-      } else if (sizeBottom) {
-        cursor = Cursor.SW_RESIZE;
-      } else {
-        cursor = Cursor.W_RESIZE;
-      }
-    } else if (sizeRight) {
-      if (sizeTop) {
-        cursor = Cursor.NE_RESIZE;
-      } else if (sizeBottom) {
-        cursor = Cursor.SE_RESIZE;
-      } else {
-        cursor = Cursor.E_RESIZE;
-      }
-    } else if (sizeTop) {
-      cursor = Cursor.N_RESIZE;
-    } else if (sizeBottom) {
-      cursor = Cursor.S_RESIZE;
-    }
-    return cursor;
-  }
+	private Cursor changeCursor(boolean sizeLeft, boolean sizeRight, boolean sizeTop, boolean sizeBottom) {
+		Cursor cursor = Cursor.DEFAULT;
+		if (sizeLeft) {
+			if (sizeTop) {
+				cursor = Cursor.NW_RESIZE;
+			} else if (sizeBottom) {
+				cursor = Cursor.SW_RESIZE;
+			} else {
+				cursor = Cursor.W_RESIZE;
+			}
+		} else if (sizeRight) {
+			if (sizeTop) {
+				cursor = Cursor.NE_RESIZE;
+			} else if (sizeBottom) {
+				cursor = Cursor.SE_RESIZE;
+			} else {
+				cursor = Cursor.E_RESIZE;
+			}
+		} else if (sizeTop) {
+			cursor = Cursor.N_RESIZE;
+		} else if (sizeBottom) {
+			cursor = Cursor.S_RESIZE;
+		}
+		return cursor;
+	}
 
-  private boolean valueInRange(double value, double min, double max) {
-    return (value >= min && value <= max);
-  }
+	private boolean valueInRange(double value, double min, double max) {
+		return (value >= min && value <= max);
+	}
 
-  private void buildUI(double startX, double startY) {
-    initOwner(owner);
-    setX(startX - FLOATING_NODE_DROPSHADOW_RADIUS);
-    setY(startY - FLOATING_NODE_DROPSHADOW_RADIUS);
-    createContainerPanel();
-    initStyle(StageStyle.TRANSPARENT);
-    Scene scene = new Scene(transparentRootPanel,
-        node.getWidth() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
-        node.getHeight() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
-        Color.TRANSPARENT);
-    setOnShown(e -> {
-      setWidth(
-          getWidth() + stackPanelContainer.getPadding().getLeft() + stackPanelContainer.getPadding()
-              .getRight());
-      setHeight(
-          getHeight() + stackPanelContainer.getPadding().getTop() + stackPanelContainer.getPadding()
-              .getBottom());
-    });
-    setScene(scene);
-  }
+	private void buildUI(double startX, double startY) {
+		initOwner(owner);
+		setX(startX - FLOATING_NODE_DROPSHADOW_RADIUS);
+		setY(startY - FLOATING_NODE_DROPSHADOW_RADIUS);
+		createContainerPanel();
+		initStyle(StageStyle.TRANSPARENT);
+		Scene scene = new Scene(transparentRootPanel, node.getWidth() + FLOATING_NODE_DROPSHADOW_RADIUS * 2, node.getHeight() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
+				Color.TRANSPARENT);
+		setOnShown(e -> {
+			setWidth(getWidth() + stackPanelContainer.getPadding().getLeft() + stackPanelContainer.getPadding().getRight());
+			setHeight(getHeight() + stackPanelContainer.getPadding().getTop() + stackPanelContainer.getPadding().getBottom());
+		});
+		setScene(scene);
+	}
 
-  private void createContainerPanel() {
-    WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
-    imageView = new ImageView(ghostImage);
-    stackPanelContainer = new StackPane(imageView);
-    transparentRootPanel = new StackPane(stackPanelContainer);
-    transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
-    transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
-    stackPanelContainer.getStyleClass().add("docknode-floating-stack-container-panel");
-    stackPanelContainer.setEffect(
-        new DropShadow(BlurType.GAUSSIAN, new Color(0, 0, 0, 0.6), FLOATING_NODE_DROPSHADOW_RADIUS,
-            0.2, 0, 0));
-    stackPanelContainer.relocate(FLOATING_NODE_DROPSHADOW_RADIUS, FLOATING_NODE_DROPSHADOW_RADIUS);
-  }
+	private void createContainerPanel() {
+		WritableImage ghostImage = node.snapshot(new SnapshotParameters(), null);
+		imageView = new ImageView(ghostImage);
+		stackPanelContainer = new StackPane(imageView);
+		transparentRootPanel = new StackPane(stackPanelContainer);
+		transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
+		transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
+		stackPanelContainer.getStyleClass().add("docknode-floating-stack-container-panel");
+		stackPanelContainer.setEffect(new DropShadow(BlurType.GAUSSIAN, new Color(0, 0, 0, 0.6), FLOATING_NODE_DROPSHADOW_RADIUS, 0.2, 0, 0));
+		stackPanelContainer.relocate(FLOATING_NODE_DROPSHADOW_RADIUS, FLOATING_NODE_DROPSHADOW_RADIUS);
+	}
 
-  public void move(double x, double y) {
-    setX(x);
-    setY(y);
-  }
+	public void move(double x, double y) {
+		setX(x);
+		setY(y);
+	}
 
-  public void makeNodeActiveOnFloatableStage() {
-    DockStation station = node.stationProperty().get();  // save the station
-    node.undock();
-    node.stationProperty().set(station); // resume station
-    stackPanelContainer.getChildren().remove(imageView);
-    stackPanelContainer.getChildren().add(node);
-    if (node.resizableProperty().get()) {
-      setupMouseEvents();
-    }
-  }
+	public void makeNodeActiveOnFloatableStage() {
+		DockStation station = node.stationProperty().get(); // save the station
+		node.undock();
+		node.stationProperty().set(station); // resume station
+		stackPanelContainer.getChildren().remove(imageView);
+		stackPanelContainer.getChildren().add(node);
+		if (node.resizableProperty().get()) {
+			setupMouseEvents();
+		}
+	}
 
-  public void closeStage() {
-    transparentRootPanel.getChildren().removeAll();
-    setScene(null);
-    hide();
-  }
+	public void closeStage() {
+		transparentRootPanel.getChildren().removeAll();
+		setScene(null);
+		hide();
+	}
 
-  public Insets getPaddingOffset() {
-    return stackPanelContainer.getPadding();
-  }
+	public Insets getPaddingOffset() {
+		return stackPanelContainer.getPadding();
+	}
 }

@@ -21,9 +21,9 @@ package com.anchorage.docks.containers;
 import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_NODE_DROPSHADOW_RADIUS;
 
 import com.anchorage.docks.node.DockNode;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
@@ -36,61 +36,53 @@ import javafx.stage.Window;
 
 public class NodeDraggingPreview extends Stage {
 
-  private DockNode node;
-  private StackPane transparentRootPanel;
-  private StackPane stackPanelContainer;
-  private Window owner;
+	private DockNode node;
+	private StackPane transparentRootPanel;
+	private StackPane stackPanelContainer;
+	private Window owner;
 
-  public NodeDraggingPreview(DockNode node, Window owner, double startX, double startY) {
-    super();
-    this.node = node;
-    this.owner = owner;
-    buildUI(startX, startY);
-  }
+	public NodeDraggingPreview(DockNode node, Window owner, double startX, double startY) {
+		super();
+		this.node = node;
+		this.owner = owner;
+		buildUI(startX, startY);
+	}
 
-  private void buildUI(double startX, double startY) {
-    initOwner(owner);
-    setX(startX - FLOATING_NODE_DROPSHADOW_RADIUS);
-    setY(startY - FLOATING_NODE_DROPSHADOW_RADIUS);
-    createContainerPanel();
-    initStyle(StageStyle.TRANSPARENT);
-    Scene scene = new Scene(transparentRootPanel,
-        node.getWidth() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
-        node.getHeight() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
-        Color.TRANSPARENT);
-    setOnShown(e -> {
-      setWidth(
-          getWidth() + stackPanelContainer.getPadding().getLeft() + stackPanelContainer.getPadding()
-              .getRight());
-      setHeight(
-          getHeight() + stackPanelContainer.getPadding().getTop() + stackPanelContainer.getPadding()
-              .getBottom());
-    });
-    setScene(scene);
-  }
+	private void buildUI(double startX, double startY) {
+		initOwner(owner);
+		setX(startX - FLOATING_NODE_DROPSHADOW_RADIUS);
+		setY(startY - FLOATING_NODE_DROPSHADOW_RADIUS);
+		createContainerPanel();
+		initStyle(StageStyle.TRANSPARENT);
+		Scene scene = new Scene(transparentRootPanel, node.getWidth() + FLOATING_NODE_DROPSHADOW_RADIUS * 2, node.getHeight() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
+				Color.TRANSPARENT);
+		setOnShown(e -> {
+			setWidth(getWidth() + stackPanelContainer.getPadding().getLeft() + stackPanelContainer.getPadding().getRight());
+			setHeight(getHeight() + stackPanelContainer.getPadding().getTop() + stackPanelContainer.getPadding().getBottom());
+		});
+		setScene(scene);
+	}
 
-  private void createContainerPanel() {
-    WritableImage ghostImage = node.snapshot(null, null);
-    ImageView imageView = new ImageView(ghostImage);
-    stackPanelContainer = new StackPane(imageView);
-    transparentRootPanel = new StackPane(stackPanelContainer);
-    transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
-    transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
-    stackPanelContainer.getStyleClass().add("docknode-floating-stack-container-panel");
-    stackPanelContainer.setEffect(
-        new DropShadow(BlurType.GAUSSIAN, new Color(0, 0, 0, 0.6), FLOATING_NODE_DROPSHADOW_RADIUS,
-            0.2, 0, 0));
-    stackPanelContainer.relocate(FLOATING_NODE_DROPSHADOW_RADIUS, FLOATING_NODE_DROPSHADOW_RADIUS);
-  }
+	private void createContainerPanel() {
+		WritableImage ghostImage = node.snapshot(null, null);
+		ImageView imageView = new ImageView(ghostImage);
+		stackPanelContainer = new StackPane(imageView);
+		transparentRootPanel = new StackPane(stackPanelContainer);
+		transparentRootPanel.setPadding(new Insets(FLOATING_NODE_DROPSHADOW_RADIUS));
+		transparentRootPanel.setStyle("-fx-background-color:rgba(0,0,0,0);");
+		stackPanelContainer.getStyleClass().add("docknode-floating-stack-container-panel");
+		stackPanelContainer.setEffect(new DropShadow(BlurType.GAUSSIAN, new Color(0, 0, 0, 0.6), FLOATING_NODE_DROPSHADOW_RADIUS, 0.2, 0, 0));
+		stackPanelContainer.relocate(FLOATING_NODE_DROPSHADOW_RADIUS, FLOATING_NODE_DROPSHADOW_RADIUS);
+	}
 
-  public void move(double x, double y) {
-    setX(x);
-    setY(y);
-  }
+	public void move(double x, double y) {
+		setX(x);
+		setY(y);
+	}
 
-  public void closeStage() {
-    transparentRootPanel.getChildren().removeAll();
-    setScene(null);
-    hide();
-  }
+	public void closeStage() {
+		transparentRootPanel.getChildren().removeAll();
+		setScene(null);
+		hide();
+	}
 }

@@ -17,15 +17,15 @@
  * MA 02110-1301  USA
  */
 package com.anchorage.docks.containers.interfaces;
- 
 
 /**
  *
  * @author Alessio
  */
 public interface DockContainableComponent {
-    
-    public void setParentContainer(DockContainer container);
-    public DockContainer getParentContainer();
-    
+
+	public void setParentContainer(DockContainer container);
+
+	public DockContainer getParentContainer();
+
 }

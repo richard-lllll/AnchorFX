@@ -23,9 +23,9 @@ import com.anchorage.docks.containers.interfaces.DockContainableComponent;
 import com.anchorage.docks.containers.subcontainers.DockSplitterContainer;
 import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.DockNode;
+
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.control.Tab;
 
 /**
  *
@@ -33,50 +33,49 @@ import javafx.scene.control.Tab;
  */
 public class DockCommons {
 
-    public static boolean isABorderPosition(DockNode.DockPosition position) {
-        return position != DockNode.DockPosition.CENTER;
-    }
+	public static boolean isABorderPosition(DockNode.DockPosition position) {
+		return position != DockNode.DockPosition.CENTER;
+	}
 
-    public static DockSplitterContainer createSplitter(Node existNode, Node newNode, DockNode.DockPosition position, double percentage) {
-        DockSplitterContainer splitter = createEmptySplitter();
- 
-        if (position == DockNode.DockPosition.BOTTOM || position == DockNode.DockPosition.TOP) {
-            splitter.setOrientation(Orientation.VERTICAL);
-        }
+	public static DockSplitterContainer createSplitter(Node existNode, Node newNode, DockNode.DockPosition position, double percentage) {
+		DockSplitterContainer splitter = createEmptySplitter();
 
-        DockContainableComponent existContainableComponent = (DockContainableComponent) existNode;
-        DockContainableComponent newContainableComponent = (DockContainableComponent) newNode;
+		if (position == DockNode.DockPosition.BOTTOM || position == DockNode.DockPosition.TOP) {
+			splitter.setOrientation(Orientation.VERTICAL);
+		}
 
-        existContainableComponent.setParentContainer(splitter);
-        newContainableComponent.setParentContainer(splitter);
+		DockContainableComponent existContainableComponent = (DockContainableComponent) existNode;
+		DockContainableComponent newContainableComponent = (DockContainableComponent) newNode;
 
-        if (position == DockNode.DockPosition.BOTTOM || position == DockNode.DockPosition.RIGHT) {
-            splitter.getItems().addAll(existNode, newNode);
-        }
-        else {
-            splitter.getItems().addAll(newNode, existNode);
-        }
+		existContainableComponent.setParentContainer(splitter);
+		newContainableComponent.setParentContainer(splitter);
 
-        splitter.getStyleClass().add("docknode-split-pane");
-        splitter.setDividerPositions(percentage);
-        return splitter;
-    }
+		if (position == DockNode.DockPosition.BOTTOM || position == DockNode.DockPosition.RIGHT) {
+			splitter.getItems().addAll(existNode, newNode);
+		} else {
+			splitter.getItems().addAll(newNode, existNode);
+		}
 
-    public static DockSplitterContainer createEmptySplitter() {
-        return new DockSplitterContainer();
-    }
+		splitter.getStyleClass().add("docknode-split-pane");
+		splitter.setDividerPositions(percentage);
+		return splitter;
+	}
 
-    public static DockTabberContainer createTabber(Node existNode, Node newNode, DockNode.DockPosition position) {
-        if (existNode instanceof DockNode && newNode instanceof DockNode) {
-            DockNode existDockNode = (DockNode) existNode;
-            DockNode newDockNode = (DockNode) newNode;
-            DockTabberContainer tabber = new DockTabberContainer();
+	public static DockSplitterContainer createEmptySplitter() {
+		return new DockSplitterContainer();
+	}
+
+	public static DockTabberContainer createTabber(Node existNode, Node newNode, DockNode.DockPosition position) {
+		if (existNode instanceof DockNode && newNode instanceof DockNode) {
+			DockNode existDockNode = (DockNode) existNode;
+			DockNode newDockNode = (DockNode) newNode;
+			DockTabberContainer tabber = new DockTabberContainer();
 			tabber.addAsTab(existDockNode);
 			tabber.addAsTab(newDockNode);
-            tabber.getStyleClass().add("docknode-tab-pane");
-            newDockNode.ensureVisibility();
-            return tabber;
-        }
-        return null;
-    }
+			tabber.getStyleClass().add("docknode-tab-pane");
+			newDockNode.ensureVisibility();
+			return tabber;
+		}
+		return null;
+	}
 }

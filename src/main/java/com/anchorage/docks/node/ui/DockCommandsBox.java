@@ -22,6 +22,7 @@ package com.anchorage.docks.node.ui;
 import com.anchorage.docks.containers.SingleDockContainer;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.stations.DockSubStation;
+
 import javafx.animation.RotateTransition;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Button;
@@ -37,162 +38,161 @@ import javafx.util.Duration;
  */
 public class DockCommandsBox extends HBox {
 
-    private Button closeButton;
-    private Button maximizeRestoreButton;
+	private Button closeButton;
+	private Button maximizeRestoreButton;
 
-    private Runnable openAction = null;
-    private Runnable hideAction = null;
-    private Pane externalContent;
+	private Runnable openAction = null;
+	private Runnable hideAction = null;
+	private Pane externalContent;
 
-    private final DockNode node;
-    private Button menuButton;
-    private boolean isMenuOpen;
+	private final DockNode node;
+	private Button menuButton;
+	private boolean isMenuOpen;
 
-    public DockCommandsBox(DockNode node) {
-        this.node = node;
-        buildUI();
-        setSpacing(0);
-        setStyle("-fx-background-color:transparent;");
-    }
+	public DockCommandsBox(DockNode node) {
+		this.node = node;
+		buildUI();
+		setSpacing(0);
+		setStyle("-fx-background-color:transparent;");
+	}
 
-    private void changeCommandsState() {
+	private void changeCommandsState() {
 
-        if (node instanceof DockSubStation || !node.closeableProperty().get()) {
-            closeButton.setMouseTransparent(true);
-            closeButton.setOpacity(0.4);
-        } else {
-            closeButton.setMouseTransparent(false);
-            closeButton.setOpacity(1);
-        }
+		if (node instanceof DockSubStation || !node.closeableProperty().get()) {
+			closeButton.setMouseTransparent(true);
+			closeButton.setOpacity(0.4);
+		} else {
+			closeButton.setMouseTransparent(false);
+			closeButton.setOpacity(1);
+		}
 
-        if (node.getParentContainer() instanceof SingleDockContainer) {
-            if (node.maximizableProperty().get()) {
-                maximizeRestoreButton.setMouseTransparent(true);
-                maximizeRestoreButton.setOpacity(0.4);
-            }
+		if (node.getParentContainer() instanceof SingleDockContainer) {
+			if (node.maximizableProperty().get()) {
+				maximizeRestoreButton.setMouseTransparent(true);
+				maximizeRestoreButton.setOpacity(0.4);
+			}
 
-        } else if (node.maximizableProperty().get()) {
-            maximizeRestoreButton.setMouseTransparent(false);
-            maximizeRestoreButton.setOpacity(1);
-        }
-    }
+		} else if (node.maximizableProperty().get()) {
+			maximizeRestoreButton.setMouseTransparent(false);
+			maximizeRestoreButton.setOpacity(1);
+		}
+	}
 
-    private void changeStateForFloatingState() {
-        if (node.maximizableProperty().get() && node.floatingProperty().get()) {
-            maximizeRestoreButton.setMouseTransparent(false);
-            maximizeRestoreButton.setOpacity(1);
-        } else {
-            maximizeRestoreButton.setMouseTransparent(true);
-            maximizeRestoreButton.setOpacity(0.4);
-        }
+	private void changeStateForFloatingState() {
+		if (node.maximizableProperty().get() && node.floatingProperty().get()) {
+			maximizeRestoreButton.setMouseTransparent(false);
+			maximizeRestoreButton.setOpacity(1);
+		} else {
+			maximizeRestoreButton.setMouseTransparent(true);
+			maximizeRestoreButton.setOpacity(0.4);
+		}
 
-    }
+	}
 
-    private void createCloseButton() {
-        Image closeImage = new Image("close.png");
+	private void createCloseButton() {
+		Image closeImage = new Image("close.png");
 
-        closeButton = new Button() {
-            @Override
-            public void requestFocus() {
-            }
-        };
+		closeButton = new Button() {
+			@Override
+			public void requestFocus() {
+			}
+		};
 
-        closeButton.setGraphic(new ImageView(closeImage));
-        closeButton.getStyleClass().add("docknode-command-button-close");
+		closeButton.setGraphic(new ImageView(closeImage));
+		closeButton.getStyleClass().add("docknode-command-button-close");
 
-        closeButton.setOnAction(e -> {
-            if (node.getCloseRequestHandler() != null) {
-                if (node.getCloseRequestHandler().canClose()) {
-                    node.undock();
-                }
-            }
-            else {
-                node.undock();
-            }
-        });
-        
-        node.closeableProperty().addListener((observer, oldValue, newValue) -> changeCommandsState());
-        node.containerProperty().addListener((observer, oldValue, newValue) -> changeCommandsState());
-        node.floatingProperty().addListener((observer, oldValue, newValue) -> changeStateForFloatingState());
-        getChildren().add(closeButton);
-    }
+		closeButton.setOnAction(e -> {
+			if (node.getCloseRequestHandler() != null) {
+				if (node.getCloseRequestHandler().canClose()) {
+					node.undock();
+				}
+			} else {
+				node.undock();
+			}
+		});
 
-    private void createMaxRestoreButton() {
+		node.closeableProperty().addListener((observer, oldValue, newValue) -> changeCommandsState());
+		node.containerProperty().addListener((observer, oldValue, newValue) -> changeCommandsState());
+		node.floatingProperty().addListener((observer, oldValue, newValue) -> changeStateForFloatingState());
+		getChildren().add(closeButton);
+	}
 
-        Image maximizeImage = new Image("maximize.png");
-        Image restoreImage = new Image("restore.png");
+	private void createMaxRestoreButton() {
 
-        maximizeRestoreButton = new Button() {
-            @Override
-            public void requestFocus() {
-            }
-        };
+		Image maximizeImage = new Image("maximize.png");
+		Image restoreImage = new Image("restore.png");
 
-        maximizeRestoreButton.setGraphic(new ImageView(maximizeImage));
-        maximizeRestoreButton.getStyleClass().add("docknode-command-button");
+		maximizeRestoreButton = new Button() {
+			@Override
+			public void requestFocus() {
+			}
+		};
 
-        node.maximizingProperty().addListener((observer, oldValue, newValue) -> {
+		maximizeRestoreButton.setGraphic(new ImageView(maximizeImage));
+		maximizeRestoreButton.getStyleClass().add("docknode-command-button");
 
-            if (newValue) {
-                maximizeRestoreButton.setGraphic(new ImageView(restoreImage));
-            } else {
-                maximizeRestoreButton.setGraphic(new ImageView(maximizeImage));
-            }
-        });
+		node.maximizingProperty().addListener((observer, oldValue, newValue) -> {
 
-        maximizeRestoreButton.setOnAction(e -> node.maximizeOrRestore());
+			if (newValue) {
+				maximizeRestoreButton.setGraphic(new ImageView(restoreImage));
+			} else {
+				maximizeRestoreButton.setGraphic(new ImageView(maximizeImage));
+			}
+		});
 
-        getChildren().add(maximizeRestoreButton);
+		maximizeRestoreButton.setOnAction(e -> node.maximizeOrRestore());
 
-        node.maximizableProperty().addListener((observer, oldValue, newValue) -> {
+		getChildren().add(maximizeRestoreButton);
 
-            if (newValue) {
-                maximizeRestoreButton.setMouseTransparent(false);
-                maximizeRestoreButton.setOpacity(1);
-            } else {
-                maximizeRestoreButton.setMouseTransparent(true);
-                maximizeRestoreButton.setOpacity(0.4);
-            }
-        });
-    }
+		node.maximizableProperty().addListener((observer, oldValue, newValue) -> {
 
-    private void buildUI() {
-       
-        createMaxRestoreButton();
-        createCloseButton();
-    }
- 
-    void enableMenuButton(boolean enable) {
-        menuButton.setVisible(enable);
-    }
+			if (newValue) {
+				maximizeRestoreButton.setMouseTransparent(false);
+				maximizeRestoreButton.setOpacity(1);
+			} else {
+				maximizeRestoreButton.setMouseTransparent(true);
+				maximizeRestoreButton.setOpacity(0.4);
+			}
+		});
+	}
 
-    boolean isMenuButtonEnable() {
-        return menuButton.isVisible();
-    }
- 
-    private void showContent(Point2D localToScreen) {
-        Popover popover = new Popover(this, externalContent);
-        popover.show(localToScreen.getX(), localToScreen.getY());
-    }
+	private void buildUI() {
 
-    void notifyCloseAction() {
-        if (isMenuOpen) {
-            isMenuOpen = false;
+		createMaxRestoreButton();
+		createCloseButton();
+	}
 
-            RotateTransition rotate = new RotateTransition(Duration.seconds(0.2), menuButton.getGraphic());
-            rotate.setToAngle(0);
-            rotate.play();
+	void enableMenuButton(boolean enable) {
+		menuButton.setVisible(enable);
+	}
 
-            hideAction.run();
-        }
-    }
+	boolean isMenuButtonEnable() {
+		return menuButton.isVisible();
+	}
 
-    void notifyOpenAction() {
-        RotateTransition rotate = new RotateTransition(Duration.seconds(0.2), menuButton.getGraphic());
-        rotate.setToAngle(90);
-        rotate.play();
+	private void showContent(Point2D localToScreen) {
+		Popover popover = new Popover(this, externalContent);
+		popover.show(localToScreen.getX(), localToScreen.getY());
+	}
 
-        openAction.run();
-    }
+	void notifyCloseAction() {
+		if (isMenuOpen) {
+			isMenuOpen = false;
+
+			RotateTransition rotate = new RotateTransition(Duration.seconds(0.2), menuButton.getGraphic());
+			rotate.setToAngle(0);
+			rotate.play();
+
+			hideAction.run();
+		}
+	}
+
+	void notifyOpenAction() {
+		RotateTransition rotate = new RotateTransition(Duration.seconds(0.2), menuButton.getGraphic());
+		rotate.setToAngle(90);
+		rotate.play();
+
+		openAction.run();
+	}
 
 }

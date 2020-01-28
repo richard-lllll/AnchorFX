@@ -23,7 +23,7 @@ import com.anchorage.docks.containers.common.DockCommons;
 import com.anchorage.docks.containers.interfaces.DockContainableComponent;
 import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.node.DockNode;
-import com.anchorage.docks.stations.DockStation;
+
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
@@ -34,92 +34,89 @@ import javafx.scene.layout.BorderPane;
  */
 public final class DockSplitterContainer extends SplitPane implements DockContainer {
 
-    private DockContainer container;
-    
-   
-    @Override
-    public void putDock(DockNode node, DockNode.DockPosition position, double percentage)  {
-        // NOTHING
-    }
-  
-    
-    @Override
-    public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage) {
+	private DockContainer container;
 
-        // get index of current node target
-        int indexOfTarget = getItems().indexOf(nodeTarget);
+	@Override
+	public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
+		// NOTHING
+	}
 
-        if (DockCommons.isABorderPosition(position)) {
-            // create a splitter with node and nodeTarget
-            DockSplitterContainer splitter = DockCommons.createSplitter(nodeTarget, node, position,percentage);
+	@Override
+	public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage) {
 
-            getChildren().add(splitter);
-            splitter.setParentContainer(this);
+		// get index of current node target
+		int indexOfTarget = getItems().indexOf(nodeTarget);
 
-            // set the splitter on index of target
-            getItems().set(indexOfTarget, splitter);
-        } else {
-            DockTabberContainer tabber = DockCommons.createTabber(nodeTarget, node, position);
-            getChildren().add(tabber);
-            tabber.setParentContainer(this);
-            getItems().set(indexOfTarget, tabber);
-        }
+		if (DockCommons.isABorderPosition(position)) {
+			// create a splitter with node and nodeTarget
+			DockSplitterContainer splitter = DockCommons.createSplitter(nodeTarget, node, position, percentage);
 
-        // remove target from splitter
-        getItems().remove(nodeTarget);
-    }
-    
-    @Override
-    public boolean isDockVisible(DockNode node)
-    {
-        return true;
-    }
+			getChildren().add(splitter);
+			splitter.setParentContainer(this);
 
-    @Override
-    public void undock(DockNode node) {
-        Node remainingNode = (getItems().get(0) == node) ?  getItems().get(1) : getItems().get(0);
-        getItems().remove(remainingNode);
-        getItems().remove(node);
-        
-        // WORKAROUND for bug on split panel. After  getItems().remove(node) the parent of node is not set to null !!!!!
-        BorderPane workAroundPane = new BorderPane(node);
-        workAroundPane.getChildren().remove(node);
-        // END WORKAROUND
- 
-        int indexInsideParent = getParentContainer().indexOf(this);
+			// set the splitter on index of target
+			getItems().set(indexOfTarget, splitter);
+		} else {
+			DockTabberContainer tabber = DockCommons.createTabber(nodeTarget, node, position);
+			getChildren().add(tabber);
+			tabber.setParentContainer(this);
+			getItems().set(indexOfTarget, tabber);
+		}
 
-        getParentContainer().insertNode(remainingNode, indexInsideParent);
-        getParentContainer().removeNode(this);
-        
-        ((DockContainableComponent) node).setParentContainer(null);
-        
-    }
+		// remove target from splitter
+		getItems().remove(nodeTarget);
+	}
 
-    @Override
-    public void insertNode(Node node, int index) {
-        getItems().set(index, node);
-        ((DockContainableComponent) node).setParentContainer(this);
-    }
+	@Override
+	public boolean isDockVisible(DockNode node) {
+		return true;
+	}
 
-    @Override
-    public void removeNode(Node node) {
-        getItems().remove(node);
-        ((DockContainableComponent) node).setParentContainer(null);
-    }
+	@Override
+	public void undock(DockNode node) {
+		Node remainingNode = (getItems().get(0) == node) ? getItems().get(1) : getItems().get(0);
+		getItems().remove(remainingNode);
+		getItems().remove(node);
 
-    @Override
-    public int indexOf(Node node) {
-        return getItems().indexOf(node);
-    }
+		// WORKAROUND for bug on split panel. After getItems().remove(node) the parent of node is not set to null !!!!!
+		BorderPane workAroundPane = new BorderPane(node);
+		workAroundPane.getChildren().remove(node);
+		// END WORKAROUND
 
-    @Override
-    public void setParentContainer(DockContainer container) {
-        this.container = container;
-    }
+		int indexInsideParent = getParentContainer().indexOf(this);
 
-    @Override
-    public DockContainer getParentContainer() {
-        return container;
-    }
+		getParentContainer().insertNode(remainingNode, indexInsideParent);
+		getParentContainer().removeNode(this);
+
+		((DockContainableComponent) node).setParentContainer(null);
+
+	}
+
+	@Override
+	public void insertNode(Node node, int index) {
+		getItems().set(index, node);
+		((DockContainableComponent) node).setParentContainer(this);
+	}
+
+	@Override
+	public void removeNode(Node node) {
+		getItems().remove(node);
+		((DockContainableComponent) node).setParentContainer(null);
+	}
+
+	@Override
+	public int indexOf(Node node) {
+		return getItems().indexOf(node);
+	}
+
+	@Override
+	public void setParentContainer(DockContainer container) {
+		this.container = container;
+	}
+
+	@Override
+	public DockContainer getParentContainer() {
+		return container;
+	}
 
 }

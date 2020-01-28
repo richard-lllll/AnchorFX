@@ -23,63 +23,63 @@ import javafx.util.Duration;
  */
 public class Popover extends Stage {
 
-    private final Pane content;
-    private final Scene scene;
-    private DockCommandsBox commandBox;
+	private final Pane content;
+	private final Scene scene;
+	private DockCommandsBox commandBox;
 
-    private ChangeListener<Number> positionListener;
-    private EventHandler<MouseEvent> eventFilter;
+	private ChangeListener<Number> positionListener;
+	private EventHandler<MouseEvent> eventFilter;
 
-    public Popover(DockCommandsBox commandBox, Pane content) {
+	public Popover(DockCommandsBox commandBox, Pane content) {
 
-        this.content = content;
-        this.commandBox = commandBox;
-        scene = new Scene(content, Color.TRANSPARENT);
-        setScene(scene);
+		this.content = content;
+		this.commandBox = commandBox;
+		scene = new Scene(content, Color.TRANSPARENT);
+		setScene(scene);
 
-        initStyle(StageStyle.TRANSPARENT);
-        initOwner(commandBox.getScene().getWindow());
+		initStyle(StageStyle.TRANSPARENT);
+		initOwner(commandBox.getScene().getWindow());
 
-        positionListener = (obs, oldvalue, newvalue) -> hideAndNotify();
-        eventFilter = evt -> hideAndNotify();
+		positionListener = (obs, oldvalue, newvalue) -> hideAndNotify();
+		eventFilter = evt -> hideAndNotify();
 
-        setOnShown(e -> {
+		setOnShown(e -> {
 
-            Stage ownerStage = (Stage) commandBox.getScene().getWindow();
+			Stage ownerStage = (Stage) commandBox.getScene().getWindow();
 
-            commandBox.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, eventFilter);
-            ownerStage.xProperty().addListener(positionListener);
-            ownerStage.yProperty().addListener(positionListener);
+			commandBox.getScene().addEventFilter(MouseEvent.MOUSE_PRESSED, eventFilter);
+			ownerStage.xProperty().addListener(positionListener);
+			ownerStage.yProperty().addListener(positionListener);
 
-            content.setOpacity(0);
-            FadeTransition fade = new FadeTransition(Duration.seconds(0.2), content);
-            fade.setToValue(1);
-            fade.play();
+			content.setOpacity(0);
+			FadeTransition fade = new FadeTransition(Duration.seconds(0.2), content);
+			fade.setToValue(1);
+			fade.play();
 
-        });
-    }
+		});
+	}
 
-    public void show(double x, double y) {
-        commandBox.notifyOpenAction();
+	public void show(double x, double y) {
+		commandBox.notifyOpenAction();
 
-        setX(x);
-        setY(y);
-        show();
-    }
+		setX(x);
+		setY(y);
+		show();
+	}
 
-    public void hideAndNotify() {
-        Stage ownerStage = (Stage) commandBox.getScene().getWindow();
+	public void hideAndNotify() {
+		Stage ownerStage = (Stage) commandBox.getScene().getWindow();
 
-        ownerStage.xProperty().removeListener(positionListener);
-        ownerStage.yProperty().removeListener(positionListener);
-        commandBox.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, eventFilter);
+		ownerStage.xProperty().removeListener(positionListener);
+		ownerStage.yProperty().removeListener(positionListener);
+		commandBox.getScene().removeEventFilter(MouseEvent.MOUSE_PRESSED, eventFilter);
 
-        System.out.println("hideAndNotify");
+		System.out.println("hideAndNotify");
 
-        hide();
+		hide();
 
-        scene.setRoot(new Region()); // elimina il content dalla scena
+		scene.setRoot(new Region()); // elimina il content dalla scena
 
-        commandBox.notifyCloseAction();
-    }
+		commandBox.notifyCloseAction();
+	}
 }

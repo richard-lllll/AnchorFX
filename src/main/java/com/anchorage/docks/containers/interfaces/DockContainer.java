@@ -20,7 +20,7 @@
 package com.anchorage.docks.containers.interfaces;
 
 import com.anchorage.docks.node.DockNode;
-import com.anchorage.docks.stations.DockStation;
+
 import javafx.scene.Node;
 
 /**
@@ -28,16 +28,18 @@ import javafx.scene.Node;
  * @author Alessio
  */
 public interface DockContainer extends DockContainableComponent {
-    public void putDock(DockNode node, DockNode.DockPosition position, double percentage);
-    public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage);
-    
-    public void undock(DockNode node);
-    
-    public int indexOf(Node node);
+	public void putDock(DockNode node, DockNode.DockPosition position, double percentage);
 
-    public void insertNode(Node node, int index);
-    public void removeNode(Node node);
+	public void putDock(DockNode node, DockNode nodeTarget, DockNode.DockPosition position, double percentage);
 
-    public boolean isDockVisible(DockNode node);
-     
+	public void undock(DockNode node);
+
+	public int indexOf(Node node);
+
+	public void insertNode(Node node, int index);
+
+	public void removeNode(Node node);
+
+	public boolean isDockVisible(DockNode node);
+
 }
