@@ -70,16 +70,20 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	private static final double DRAG_THRESHOLD_NONE = 0;
 
 	private DockUIPanel content;
+
 	private BooleanProperty floatableProperty;
 	private BooleanProperty closeableProperty;
 	private BooleanProperty resizableProperty;
 	private BooleanProperty maximizableProperty;
 	private ObjectProperty<DockStation> station;
+
 	private ReadOnlyBooleanWrapper floatingProperty;
 	private ReadOnlyBooleanWrapper draggingProperty;
 	private ReadOnlyBooleanWrapper maximizingProperty;
+
 	private ReadOnlyObjectWrapper<DockContainer> container;
 	private StageFloatable stageFloatable;
+
 	private double floatingStateCoordinateX;
 	private double floatingStateCoordinateY;
 	private double floatingStateWidth;
@@ -106,16 +110,16 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		maximizingProperty = new ReadOnlyBooleanWrapper(false);
 		container = new ReadOnlyObjectWrapper<>(null);
 
-//    floatingProperty.addListener((observable, oldValue, newValue) -> {
-//      if(newValue) {
-//        installNullDragManager(
-//            content.getNodeForDraggingManagement());
-//      } else {
-//        installDragEventManager(
-//            content.getNodeForDraggingManagement());
-//      }
-//    }
-//    );
+		//    floatingProperty.addListener((observable, oldValue, newValue) -> {
+		//      if(newValue) {
+		//        installNullDragManager(
+		//            content.getNodeForDraggingManagement());
+		//      } else {
+		//        installDragEventManager(
+		//            content.getNodeForDraggingManagement());
+		//      }
+		//    }
+		//    );
 	}
 
 	public DockNode(DockUIPanel node) {
@@ -155,30 +159,15 @@ public class DockNode extends StackPane implements DockContainableComponent {
 				}
 
 				boolean dragging = draggingProperty().get();
-
 				boolean isFloating = floatingProperty.get();
 
-				if (dragging) {
-					double floatableX = event.getScreenX() - dragWindowOffset.getX();
-					double floatableY = event.getScreenY() - dragWindowOffset.getY();
+				if (!dragging) {
+					// Dragging not started
 
-					if (isFloating) {
-						// Floatable
-
-						moveFloatable(floatableX, floatableY);
-					} else {
-						// Preview
-
-						nodePreview.setX(event.getScreenX() - dragWindowOffset.getX());
-						nodePreview.setY(event.getScreenY() - dragWindowOffset.getY());
-					}
-
-					stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
-					AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
-				} else {
 					Point2D mousePosition = new Point2D(event.getScreenX(), event.getScreenY());
 					if (dragStartPosition == null) {
 						dragStartPosition = new Point2D(mousePosition.getX(), mousePosition.getY());
+
 						highlightSource(event, true);
 
 						return;
@@ -201,17 +190,24 @@ public class DockNode extends StackPane implements DockContainableComponent {
 
 					if (mousePosition.distance(dragStartPosition) < threshold) {
 						// Do not drag if distance from mouse down is not high enough
+
 						return;
 					}
 
+					if (dragWindowOffset == null) {
+						if (isFloating && stageFloatable != null) {
+							// Floating in stage: Use position of stage
+							dragWindowOffset = stageFloatable.getScene().getRoot().screenToLocal(event.getScreenX(), event.getScreenY());
+						} else {
+							dragWindowOffset = content.screenToLocal(event.getScreenX(), event.getScreenY());
+
+							// Add some position correction to make is a bit nicer
+							dragWindowOffset = dragWindowOffset.add(0, 10);
+						}
+					}
+
 					// Start dragging
-
 					enableDragging();
-
-					dragWindowOffset = content.screenToLocal(event.getScreenX(), event.getScreenY());
-
-					// Position correction
-					dragWindowOffset = dragWindowOffset.add(10, 10);
 
 					double posX = event.getScreenX() - dragWindowOffset.getX();
 					double posY = event.getScreenY() - dragWindowOffset.getY();
@@ -229,6 +225,25 @@ public class DockNode extends StackPane implements DockContainableComponent {
 					if (!maximizingProperty().get()) {
 						AnchorageSystem.prepareDraggingZoneFor(stationProperty().get(), this);
 					}
+				} else {
+					// Now dragging
+
+					double floatableX = event.getScreenX() - dragWindowOffset.getX();
+					double floatableY = event.getScreenY() - dragWindowOffset.getY();
+
+					if (isFloating) {
+						// Floatable
+
+						moveFloatable(floatableX, floatableY);
+					} else {
+						// Preview
+
+						nodePreview.setX(event.getScreenX() - dragWindowOffset.getX());
+						nodePreview.setY(event.getScreenY() - dragWindowOffset.getY());
+					}
+
+					stationProperty().get().searchTargetNode(event.getScreenX(), event.getScreenY());
+					AnchorageSystem.searchTargetNode(event.getScreenX(), event.getScreenY());
 				}
 			}
 		});
@@ -249,6 +264,8 @@ public class DockNode extends StackPane implements DockContainableComponent {
 					AnchorageSystem.finalizeDragging(dropTarget);
 				}
 
+				dragWindowOffset = null;
+
 				// Reset highlighting
 				highlightSource(event, false);
 				dragStartPosition = null;
@@ -263,6 +280,12 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		Object source = event.getSource();
 		if (source instanceof Node) {
 			Node node = (Node) source;
+
+			boolean isTitleBar = node.getStyleClass().contains("docknode-title-bar");
+			if (isTitleBar) {
+				// Do not highlight title bar
+				return;
+			}
 
 			if (highlighted) {
 				Glow glow = new Glow();

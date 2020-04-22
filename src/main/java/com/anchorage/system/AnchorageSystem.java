@@ -107,7 +107,6 @@ public class AnchorageSystem {
 	}
 
 	public static void searchTargetNode(double x, double y) {
-
 		if (currentStationFromDrag.isCommonStation() && !currentStationFromDrag.isSubStation()) {
 			stations.stream().filter(s -> s.isCommonStation()).forEach(s -> s.searchTargetNode(x, y));
 		} else {

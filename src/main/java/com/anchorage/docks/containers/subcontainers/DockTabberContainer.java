@@ -36,6 +36,8 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 
 	private DockContainer container;
 
+	private boolean keepAsTabber = false;
+
 	@Override
 	public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
 		addAsTab(node);
@@ -120,7 +122,8 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		Tab tab = getTabs().get(index);
 		getTabs().remove(tab);
 		node.setParentContainer(null);
-		if (getTabs().size() == 1) {
+
+		if (!keepAsTabber && getTabs().size() == 1) {
 			DockNode remainingNode = (DockNode) getTabs().get(0).getContent();
 			getTabs().remove(0);
 			int indexInsideParent = getParentContainer().indexOf(this);
@@ -170,4 +173,12 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		Tab tabNode = getTabByNode(node);
 		getSelectionModel().select(tabNode);
 	}
+
+	/**
+	 * If true: This container will remain a tabber container, on modification of dock nodes contained
+	 */
+	public void setKeepAsTabber(boolean keepAsTabber) {
+		this.keepAsTabber = keepAsTabber;
+	}
+
 }

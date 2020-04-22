@@ -20,16 +20,15 @@ import javafx.scene.control.Tab;
 public class DockUtilsGet {
 
 	/**
-	 * Find the dock container in the station
+	 * Find first tabber in the station (recursive)
 	 */
-	public static DockTabberContainer getSubcontainerTabber(DockStation station) {
+	public static DockTabberContainer getTabberRecursive(DockStation station) {
 		ObservableList<Node> children = station.getChildren();
 
-		for (Node node : children) {
-			if (node instanceof DockTabberContainer) {
-				DockTabberContainer dockContainer = (DockTabberContainer) node;
-
-				return dockContainer;
+		for (Node child : children) {
+			DockTabberContainer found = getTabberRecursive(child);
+			if (found != null) {
+				return found;
 			}
 		}
 
@@ -37,7 +36,7 @@ public class DockUtilsGet {
 	}
 
 	/**
-	 * Find a splitter in the station
+	 * Find first splitter in the station (not recursive)
 	 */
 	public static DockSplitterContainer getSubcontainerSplitter(DockStation station) {
 		ObservableList<Node> children = station.getChildren();
@@ -66,4 +65,28 @@ public class DockUtilsGet {
 
 		return dockNodes;
 	}
+
+	private static DockTabberContainer getTabberRecursive(Node node) {
+		if (node instanceof DockTabberContainer) {
+			DockTabberContainer dockContainer = (DockTabberContainer) node;
+			return dockContainer;
+		}
+
+		if (node instanceof DockSplitterContainer) {
+			// Tabber can be inside of splitter
+
+			DockSplitterContainer splitter = (DockSplitterContainer) node;
+
+			ObservableList<Node> splitterChildren = splitter.getItems();
+			for (Node splitterChild : splitterChildren) {
+				DockTabberContainer found = getTabberRecursive(splitterChild);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+
+		return null;
+	}
+
 }

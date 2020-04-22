@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.anchorage.docks.containers.common.AnchorageSettings;
 import com.anchorage.docks.node.DockNode;
+import com.anchorage.docks.node.DockNode.DockPosition;
 import com.anchorage.docks.node.ui.DockUIPanel;
 import com.anchorage.docks.stations.DockStation;
 import com.anchorage.docks.stations.DockSubStation;
@@ -53,7 +54,6 @@ import javafx.util.Duration;
  */
 public final class DockZones extends Stage {
 
-	private static final double CIRCLE_RADIUS = 100;
 	public static final int OFFSET_IMAGE = 15;
 
 	///////// MAIN STAGE SCENE AND ROOT
@@ -97,16 +97,13 @@ public final class DockZones extends Stage {
 		dragCenterImage = new Image("dragcenter.png");
 	}
 
-	private DockZones() {
-
-	}
-
 	public DockZones(DockStation station, DockNode nodeToMove) {
-
 		this.nodeToMove = nodeToMove;
 		this.ownerStation = station;
 
-		initOwner(ownerStation.getStationWindow());
+		if (AnchorageSettings.INIT_OWNER_FOR_DOCK_ZONES) {
+			initOwner(ownerStation.getStationWindow());
+		}
 		initStyle(StageStyle.TRANSPARENT);
 
 		buildUI();
@@ -136,49 +133,61 @@ public final class DockZones extends Stage {
 	private void makeSelectors() {
 		selectors = new ArrayList<>();
 
+		double rootWidth = mainRoot.getWidth();
+		double rootHeight = mainRoot.getHeight();
+
+		double circleWidth = circleStageRoot.getWidth();
+		double circleHeight = circleStageRoot.getHeight();
+
 		if (ownerStation.getChildren().size() > 0) {
 			// selectors of station
-			selectors.add(new ZoneSelector(dragTopImage, DockNode.DockPosition.TOP, true, mainRoot, (mainRoot.getWidth() - dragTopImage.getWidth()) / 2, OFFSET_IMAGE));
-			selectors.add(new ZoneSelector(dragBottomImage, DockNode.DockPosition.BOTTOM, true, mainRoot, (mainRoot.getWidth() - dragTopImage.getWidth()) / 2,
-					mainRoot.getHeight() - dragBottomImage.getHeight() - OFFSET_IMAGE));
-			selectors.add(new ZoneSelector(dragLeftImage, DockNode.DockPosition.LEFT, true, mainRoot, OFFSET_IMAGE, (mainRoot.getHeight() - dragLeftImage.getWidth()) / 2));
-			selectors.add(new ZoneSelector(dragRightImage, DockNode.DockPosition.RIGHT, true, mainRoot, (mainRoot.getWidth() - dragRightImage.getWidth() - OFFSET_IMAGE),
-					(mainRoot.getHeight() - dragRightImage.getWidth()) / 2));
+			addSelector(dragTopImage, DockNode.DockPosition.TOP, true, mainRoot, (rootWidth - dragTopImage.getWidth()) / 2, OFFSET_IMAGE);
+			addSelector(dragBottomImage, DockNode.DockPosition.BOTTOM, true, mainRoot, (rootWidth - dragBottomImage.getWidth()) / 2,
+					rootHeight - dragBottomImage.getHeight() - OFFSET_IMAGE);
+			addSelector(dragLeftImage, DockNode.DockPosition.LEFT, true, mainRoot, OFFSET_IMAGE, (rootHeight - dragLeftImage.getWidth()) / 2);
+			addSelector(dragRightImage, DockNode.DockPosition.RIGHT, true, mainRoot, (rootWidth - dragRightImage.getWidth() - OFFSET_IMAGE),
+					(rootHeight - dragRightImage.getWidth()) / 2);
 
 			// selectors of node
-			selectors.add(
-					new ZoneSelector(dragTopImage, DockNode.DockPosition.TOP, false, circleStageRoot, (circleStageRoot.getWidth() - dragTopImage.getWidth()) / 2, OFFSET_IMAGE));
-			selectors.add(new ZoneSelector(dragBottomImage, DockNode.DockPosition.BOTTOM, false, circleStageRoot, (circleStageRoot.getWidth() - dragBottomImage.getWidth()) / 2,
-					circleStageRoot.getHeight() - dragBottomImage.getHeight() - OFFSET_IMAGE));
-			selectors.add(new ZoneSelector(dragLeftImage, DockNode.DockPosition.LEFT, false, circleStageRoot, OFFSET_IMAGE,
-					(circleStageRoot.getHeight() - dragLeftImage.getHeight()) / 2));
-			selectors.add(new ZoneSelector(dragRightImage, DockNode.DockPosition.RIGHT, false, circleStageRoot,
-					circleStageRoot.getWidth() - dragRightImage.getWidth() - OFFSET_IMAGE, (circleStageRoot.getHeight() - dragRightImage.getHeight()) / 2));
-			selectors.add(new ZoneSelector(dragCenterImage, DockNode.DockPosition.CENTER, false, circleStageRoot, (circleStageRoot.getWidth() - dragCenterImage.getWidth()) / 2,
-					(circleStageRoot.getHeight() - dragCenterImage.getHeight()) / 2));
+			if (!AnchorageSettings.DROP_ZONES_SIMLIFIED) {
+				addSelector(dragTopImage, DockNode.DockPosition.TOP, false, circleStageRoot, (circleWidth - dragTopImage.getWidth()) / 2, OFFSET_IMAGE);
+				addSelector(dragBottomImage, DockNode.DockPosition.BOTTOM, false, circleStageRoot, (circleWidth - dragBottomImage.getWidth()) / 2,
+						circleHeight - dragBottomImage.getHeight() - OFFSET_IMAGE);
+				addSelector(dragLeftImage, DockNode.DockPosition.LEFT, false, circleStageRoot, OFFSET_IMAGE, (circleHeight - dragLeftImage.getHeight()) / 2);
+				addSelector(dragRightImage, DockNode.DockPosition.RIGHT, false, circleStageRoot, circleWidth - dragRightImage.getWidth() - OFFSET_IMAGE,
+						(circleHeight - dragRightImage.getHeight()) / 2);
+			}
+			addSelector(dragCenterImage, DockNode.DockPosition.CENTER, false, circleStageRoot, (circleWidth - dragCenterImage.getWidth()) / 2,
+					(circleHeight - dragCenterImage.getHeight()) / 2);
 
 		} else {
-			selectors.add(new ZoneSelector(dragCenterImage, DockNode.DockPosition.CENTER, true, mainRoot, (mainRoot.getWidth() - dragCenterImage.getWidth()) / 2,
-					(mainRoot.getHeight() - dragCenterImage.getHeight()) / 2));
+			selectors.add(new ZoneSelector(dragCenterImage, DockNode.DockPosition.CENTER, true, mainRoot, (rootWidth - dragCenterImage.getWidth()) / 2,
+					(rootHeight - dragCenterImage.getHeight()) / 2));
 		}
+	}
 
+	private void addSelector(Image image, DockPosition dockPosition, boolean stationZone, Pane parent, double x, double y) {
+		ZoneSelector selector = new ZoneSelector(image, dockPosition, stationZone, parent, x, y);
+
+		selectors.add(selector);
 	}
 
 	private void buildCircleStage() {
+		double circleRadius = getCirleRadius();
 
 		circleStage = new Stage();
 		circleStage.initStyle(StageStyle.TRANSPARENT);
 		circleStage.initOwner(this);
 
-		circleZone = new Circle(CIRCLE_RADIUS);
-		circleZone.setCenterX(CIRCLE_RADIUS);
-		circleZone.setCenterY(CIRCLE_RADIUS);
+		circleZone = new Circle(circleRadius);
+		circleZone.setCenterX(circleRadius);
+		circleZone.setCenterY(circleRadius);
 		circleZone.getStyleClass().add("dockzone-circle-container-selectors");
 
 		circleStageRoot = new Pane(circleZone);
 		circleStageRoot.setStyle("-fx-background-color:rgba(0,0,0,0);");
 
-		circleStageScene = new Scene(circleStageRoot, CIRCLE_RADIUS * 2, CIRCLE_RADIUS * 2, Color.TRANSPARENT);
+		circleStageScene = new Scene(circleStageRoot, circleRadius * 2, circleRadius * 2, Color.TRANSPARENT);
 
 		circleStage.setScene(circleStageScene);
 
@@ -254,7 +263,7 @@ public final class DockZones extends Stage {
 
 		highLight(selector);
 
-//        if (selector != null && selector != currentZoneSelector && currentNodeTarget != null) {
+		//        if (selector != null && selector != currentZoneSelector && currentNodeTarget != null) {
 		if (selector != null && selector != currentZoneSelector) {
 			currentZoneSelector = selector;
 			makePreview(currentZoneSelector, currentNodeTarget);
@@ -405,4 +414,11 @@ public final class DockZones extends Stage {
 
 	}
 
+	private static double getCirleRadius() {
+		if (AnchorageSettings.DROP_ZONES_SIMLIFIED) {
+			return 60;
+		}
+
+		return 100;
+	}
 }

@@ -29,6 +29,18 @@ public class AnchorageSettings {
 
 	private static boolean dockingPositionPreview = true;
 
+	/**
+	 * If true: Use simplified drop zones (smaller circles, fewer circles)
+	 */
+	public static boolean DROP_ZONES_SIMLIFIED = true;
+
+	/**
+	 * Modify behaviour of dock zones: If true, execute Stage.initOwner(Window) for dock zones
+	 * 
+	 * Setting this to false will prevent the dock zones (and its window) to come to the front when user is dragging a StageFloatable
+	 */
+	public static boolean INIT_OWNER_FOR_DOCK_ZONES = true;
+
 	public static void setDockingPositionPreview(boolean value) {
 		dockingPositionPreview = value;
 	}
