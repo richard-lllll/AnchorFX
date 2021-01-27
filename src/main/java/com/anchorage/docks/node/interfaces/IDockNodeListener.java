@@ -17,4 +17,9 @@ public interface IDockNodeListener {
 	 * Method called before stage is closed
 	 */
 	public void dockNodeBeforeCloseStage(StageFloatable stageFloatable);
+
+	/**
+	 * Method called after dock node/stage was closed with "x"-Icon
+	 */
+	public void afterDockNodeClosed(StageFloatable stageFloatable);
 }

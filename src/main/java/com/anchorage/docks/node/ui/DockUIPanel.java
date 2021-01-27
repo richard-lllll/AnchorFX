@@ -34,11 +34,7 @@ import javafx.scene.layout.StackPane;
 /**
  * Component to shown dock
  * 
- * Adds:
- * - Icon
- * - Title
- * - Tooltip
- * - CommandsBox
+ * Adds: - Icon - Title - Tooltip - CommandsBox
  * 
  * @author Alessio
  */
@@ -47,7 +43,10 @@ public final class DockUIPanel extends Pane {
 	/** Height of the bar panels in pixels */
 	public static final double BAR_HEIGHT = 25;
 
-	/** If true, new docks will show the bar panels; set to false to hide bar panels by default */
+	/**
+	 * If true, new docks will show the bar panels; set to false to hide bar panels
+	 * by default
+	 */
 	public static boolean SHOW_NEW_BAR_PANELS = true;
 
 	private Node nodeContent;
@@ -100,7 +99,8 @@ public final class DockUIPanel extends Pane {
 	private void makeCommands() {
 		commandsBox = new DockCommandsBox(node);
 		barPanel.getChildren().add(commandsBox);
-		commandsBox.layoutXProperty().bind(barPanel.prefWidthProperty().subtract(commandsBox.getChildren().size() * 30 + 10));
+		commandsBox.layoutXProperty()
+				.bind(barPanel.prefWidthProperty().subtract(commandsBox.getChildren().size() * 30 + 10));
 		commandsBox.setLayoutY(0);
 		titleLabel.prefWidthProperty().bind(commandsBox.layoutXProperty().subtract(10));
 	}
@@ -176,8 +176,10 @@ public final class DockUIPanel extends Pane {
 		contentPanel.prefWidthProperty().bind(widthProperty());
 		contentPanel.prefHeightProperty().bind(heightProperty().subtract(BAR_HEIGHT));
 		contentPanel.getChildren().add(nodeContent);
+
 		contentPanel.setCache(true);
 		contentPanel.setCacheHint(CacheHint.SPEED);
+
 		if (nodeContent instanceof Pane) {
 			Pane nodeContentPane = (Pane) nodeContent;
 			nodeContentPane.setMinHeight(USE_COMPUTED_SIZE);
@@ -203,6 +205,14 @@ public final class DockUIPanel extends Pane {
 
 	public boolean isMenuButtonEnable() {
 		return commandsBox.isMenuButtonEnable();
+	}
+
+	public void setNodeContent(Node nodeContent) {
+		contentPanel.getChildren().remove(this.nodeContent);
+
+		this.nodeContent = nodeContent;
+
+		contentPanel.getChildren().add(nodeContent);
 	}
 
 }

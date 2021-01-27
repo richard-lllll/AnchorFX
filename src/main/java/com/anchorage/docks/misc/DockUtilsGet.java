@@ -66,7 +66,25 @@ public class DockUtilsGet {
 		return dockNodes;
 	}
 
-	private static DockTabberContainer getTabberRecursive(Node node) {
+	public static DockNode getParentDockNode(Node node) {
+		if (node == null) {
+			return null;
+		}
+
+		Node current = node;
+
+		while (current != null) {
+			if (current instanceof DockNode) {
+				return (DockNode) current;
+			}
+
+			current = current.getParent();
+		}
+
+		return null;
+	}
+
+	public static DockTabberContainer getTabberRecursive(Node node) {
 		if (node instanceof DockTabberContainer) {
 			DockTabberContainer dockContainer = (DockTabberContainer) node;
 			return dockContainer;

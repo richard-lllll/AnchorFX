@@ -68,6 +68,8 @@ public class StageFloatable extends Stage {
 	/** State if resizing of the stage is performed */
 	private ResizeState resizeState = new ResizeState();
 
+	private boolean cssApplied = false;
+
 	public StageFloatable(DockNode node, Window owner, double startX, double startY) {
 		super();
 		this.node = node;
@@ -245,10 +247,14 @@ public class StageFloatable extends Stage {
 
 	private void buildUI(double startX, double startY) {
 		initOwner(owner);
+
 		setX(startX - FLOATING_NODE_DROPSHADOW_RADIUS);
 		setY(startY - FLOATING_NODE_DROPSHADOW_RADIUS);
 		createContainerPanel();
+
+		//initStyle(StageStyle.UNDECORATED);
 		initStyle(StageStyle.TRANSPARENT);
+
 		Scene scene = new Scene(transparentRootPanel, node.getWidth() + FLOATING_NODE_DROPSHADOW_RADIUS * 2, node.getHeight() + FLOATING_NODE_DROPSHADOW_RADIUS * 2,
 				Color.TRANSPARENT);
 		setOnShown(e -> {
@@ -315,6 +321,14 @@ public class StageFloatable extends Stage {
 
 	public Insets getPaddingOffset() {
 		return stackPanelContainer.getPadding();
+	}
+
+	public boolean getCssApplied() {
+		return cssApplied;
+	}
+
+	public void setCssApplied(boolean cssApplied) {
+		this.cssApplied = cssApplied;
 	}
 
 	/**

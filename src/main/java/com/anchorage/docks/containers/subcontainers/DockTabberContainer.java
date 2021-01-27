@@ -81,6 +81,11 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 		container = splitter;
 	}
 
+	/**
+	 * Returns tab of node
+	 * 
+	 * @return Tab found, can be null
+	 */
 	public Tab getTabByNode(DockNode node) {
 		return getTabs().stream().filter(t -> t.getContent() == node).findFirst().orElse(null);
 	}

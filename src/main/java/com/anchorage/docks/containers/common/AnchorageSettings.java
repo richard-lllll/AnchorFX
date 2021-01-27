@@ -18,7 +18,12 @@
  */
 package com.anchorage.docks.containers.common;
 
+import java.net.URL;
+
+import javafx.scene.image.Image;
+
 /**
+ * Some settings for the docking
  *
  * @author Alessio
  */
@@ -40,6 +45,21 @@ public class AnchorageSettings {
 	 * Setting this to false will prevent the dock zones (and its window) to come to the front when user is dragging a StageFloatable
 	 */
 	public static boolean INIT_OWNER_FOR_DOCK_ZONES = true;
+
+	/**
+	 * Icon of StageFloatable
+	 */
+	public static Image DOCK_ZONES_ICON = null;
+
+	/**
+	 * Text of window/taskbar (in operating system) when a StageFloatable is dragged
+	 */
+	public static String DOCK_ZONES_TEXT = null;
+
+	/**
+	 * CSS to be applied to dock zones
+	 */
+	public static URL DOCK_ZONES_CSS = null;
 
 	public static void setDockingPositionPreview(boolean value) {
 		dockingPositionPreview = value;

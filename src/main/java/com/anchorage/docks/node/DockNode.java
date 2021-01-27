@@ -53,12 +53,14 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 
 public class DockNode extends StackPane implements DockContainableComponent {
@@ -558,6 +560,30 @@ public class DockNode extends StackPane implements DockContainableComponent {
 		return content;
 	}
 
+	public void destroy() {
+		// Close
+		undock();
+
+		if (closeRequestHandler != null) {
+			closeRequestHandler = null;
+		}
+
+		dockNodeListener = null;
+
+		// Clean up content
+		if (content != null) {
+			content.destroy();
+		}
+
+		content = null;
+	}
+
+	public void afterDockNodeClosed() {
+		if (dockNodeListener != null) {
+			dockNodeListener.afterDockNodeClosed(stageFloatable);
+		}
+	}
+
 	@Override
 	public String toString() {
 		return content.titleProperty().get();
@@ -572,7 +598,13 @@ public class DockNode extends StackPane implements DockContainableComponent {
 	}
 
 	public boolean checkForTarget(double x, double y) {
-		Point2D screenToScenePoint = getScene().getRoot().screenToLocal(x, y);
+		Scene scene = getScene();
+		//		if (scene == null) {
+		//			// Cannot find scene
+		//			return false;
+		//		}
+
+		Point2D screenToScenePoint = scene.getRoot().screenToLocal(x, y);
 		Bounds sceneBounds = getSceneBounds();
 
 		if (screenToScenePoint == null) {
@@ -607,6 +639,42 @@ public class DockNode extends StackPane implements DockContainableComponent {
 				maximizingProperty.set(false);
 			}
 		}
+	}
+
+	/**
+	 * Position StageFloatable in the center of the first Screen
+	 * 
+	 * @param parentStage Optional, sets the window frame to find the Screen
+	 */
+	public void centerStageFloatableOnScreen(Stage parentStage) {
+		if (stageFloatable == null) {
+			return;
+		}
+
+		Rectangle2D rectangleOfOrigin = null;
+		if (parentStage != null) {
+			rectangleOfOrigin = new Rectangle2D(parentStage.getX(), parentStage.getY(), parentStage.getWidth(), parentStage.getHeight());
+		} else {
+			rectangleOfOrigin = new Rectangle2D(stageFloatable.getX(), stageFloatable.getY(), stageFloatable.getWidth(), stageFloatable.getHeight());
+		}
+
+		// Get current screen of the stage
+		ObservableList<Screen> screens = Screen.getScreensForRectangle(rectangleOfOrigin);
+		if (screens.isEmpty()) {
+			return;
+		}
+
+		// Change stage properties
+		Rectangle2D bounds = screens.get(0).getBounds();
+
+		double width = stageFloatable.getWidth();
+		double height = stageFloatable.getHeight();
+
+		double x = (bounds.getWidth() - width) / 2;
+		double y = (bounds.getHeight() - height) / 2;
+
+		stageFloatable.setX(x);
+		stageFloatable.setY(y);
 	}
 
 	private void moveStateToFullScreen() {

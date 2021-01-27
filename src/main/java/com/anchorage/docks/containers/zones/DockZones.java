@@ -20,6 +20,7 @@ package com.anchorage.docks.containers.zones;
 
 import static com.anchorage.docks.containers.common.AnchorageSettings.FLOATING_NODE_DROPSHADOW_RADIUS;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -195,6 +196,7 @@ public final class DockZones extends Stage {
 	}
 
 	private void buildUI() {
+		// Full size content
 
 		mainRoot = new Pane();
 		mainRoot.setStyle("-fx-background-color:rgba(0,0,0,0);");
@@ -203,11 +205,29 @@ public final class DockZones extends Stage {
 
 		setScene(scene);
 
+		if (AnchorageSettings.DOCK_ZONES_ICON != null) {
+			getIcons().add(AnchorageSettings.DOCK_ZONES_ICON);
+		}
+		if (AnchorageSettings.DOCK_ZONES_TEXT != null) {
+			setTitle(AnchorageSettings.DOCK_ZONES_TEXT);
+		}
+		if (AnchorageSettings.DOCK_ZONES_CSS != null) {
+			addCss(AnchorageSettings.DOCK_ZONES_CSS);
+		}
+
 		Point2D screenOrigin = ownerStation.localToScreen(ownerStation.getBoundsInLocal().getMinX(), ownerStation.getBoundsInLocal().getMinY());
+		if (screenOrigin == null) {
+			// Cannot find
+			return;
+		}
 
 		setX(screenOrigin.getX());
 		setY(screenOrigin.getY());
+	}
 
+	private void addCss(URL resource) {
+		String externalForm = resource.toExternalForm();
+		scene.getStylesheets().add(externalForm);
 	}
 
 	public void showZones() {

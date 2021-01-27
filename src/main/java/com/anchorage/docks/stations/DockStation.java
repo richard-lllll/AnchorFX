@@ -29,10 +29,12 @@ import com.anchorage.docks.containers.zones.ZoneSelector;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.interfaces.IDockStationListener;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Window;
@@ -124,6 +126,36 @@ public final class DockStation extends SingleDockContainer {
 		if (nodes.contains(node)) {
 			nodes.remove(node);
 			node.stationProperty().set(null);
+		}
+	}
+
+	public void destroy() {
+		List<DockNode> nodesList = new ArrayList<>();
+		nodesList.addAll(nodes);
+
+		for (DockNode node : nodesList) {
+			node.destroy();
+		}
+
+		nodes.clear();
+
+		listeners.clear();
+
+		resetContextMenuTrigger();
+		getChildren().clear();
+	}
+
+	private void resetContextMenuTrigger() {
+		ObservableList<Node> children = getChildren();
+		for (Node node : children) {
+			if (node instanceof DockTabberContainer) {
+				DockTabberContainer tabber = (DockTabberContainer) node;
+
+				ObservableList<Tab> tabs = tabber.getTabs();
+				for (Tab tab : tabs) {
+					tab.getGraphic().setOnContextMenuRequested(null);
+				}
+			}
 		}
 	}
 

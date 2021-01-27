@@ -125,6 +125,9 @@ public class DockCommandsBox extends HBox {
 				for (IDockGlobalListener listener : AnchorageSystem.getGlobalListeners()) {
 					listener.closingDockNodeFinished(node, stageBefore, floatingBefore);
 				}
+
+				// After stage closed
+				node.afterDockNodeClosed();
 			}
 		});
 
